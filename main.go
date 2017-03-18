@@ -9,15 +9,18 @@ import (
 	"github.com/satori/go.uuid"
 	"os"
 	"path/filepath"
+	"io/ioutil"
 )
 
 const PORT=8080
-var dataDir = filepath.FromSlash("/opt/blabbertabber")
+var dataRootDir = filepath.FromSlash("/opt/blabbertabber")
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	conversationUUID := uuid.NewV4() // TODO(brian) handle error
-	dataDir = filepath.Join(dataDir, conversationUUID.String())
-	os.MkdirAll(dataDir, 0777)
+	conversationUUID := uuid.NewV4()
+	dataDir := filepath.Join(dataRootDir, conversationUUID.String())
+	_ = os.MkdirAll(dataDir, 0777) // TODO(brian) handle error
+	bytes, _ := ioutil.ReadAll(r.Body) // TODO(brian) handle error
+	_ = ioutil.WriteFile(filepath.Join(dataDir, "meeting.wav"), bytes, 0644) // TODO(brian) handle error
 	w.Write([]byte(conversationUUID.String()))
 }
 
