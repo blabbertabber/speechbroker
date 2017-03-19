@@ -1,0 +1,43 @@
+# This is a Dockerfile of the Aalto Speech Diarizer.
+#
+# To run:
+#   docker run -it blabbertabber/aalto-speech-diarizer bash
+#   cd /speaker-diarization
+#   curl -k -OL https://nono.io/meeting.wav  # sample .wav; substitute yours
+#   ./spk-diarization2.py meeting.wav        # substitute your .wav filename
+#   cat stdout                               # browse output
+
+
+FROM fedora
+
+LABEL authors="Brian Cunnie <brian.cunnie@gmail.com>, Brendan Cunnie <saintbrendan@gmail.com>"
+
+# required development tools
+RUN dnf groupinstall -y "Development Tools"; \
+	dnf install -y cmake \
+	    SDL-devel \
+	    python-devel \
+	    lapack-devel \
+	    libsndfile-devel \
+	    fftw-devel \
+        clang \
+        clang-devel \
+        swig \
+        gcc-c++
+
+# Aalto-speech pre-req
+RUN git clone https://github.com/aalto-speech/AaltoASR.git; \
+    cd AaltoASR; \
+    mkdir build; \
+    cd build; \
+    cmake .. ; \
+    make; \
+    make install
+
+# The diarizer proper
+RUN git clone https://github.com/aalto-speech/speaker-diarization.git; \
+    cd /speaker-diarization; \
+    ln -s ../AaltoASR ./ ; \
+    ln -s ../AaltoASR/build ./ ; \
+    ln -s ../AaltoASR/build/aku/feacat ./ ; \
+    pip install numpy scipy docopt
