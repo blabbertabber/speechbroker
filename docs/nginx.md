@@ -30,7 +30,7 @@ Directory Structure:
 
 ### preparation for `acme-tiny`
 
-Create the user that will update the certificates (nginx group to read key):
+Create the user that will update the certificates:
 ```
 sudo adduser \
     --system \
@@ -38,12 +38,33 @@ sudo adduser \
     -d /var/blabbertabber \
     -M \
     -s /sbin/nologin \
-    -g nginx \
     acme_tiny
+```
+
+Create the user that will diarize the meetings:
+```
+sudo mkdir /var/blabbertabber
+sudo adduser \
+    --system \
+    -c "BlabberTabber Diarizer" \
+    -d /var/blabbertabber \
+    -M \
+    -s /sbin/nologin \
+    diarizer
+```
+
+Create the "Let's Encrypt" account key (different from the HTTPS key)
+and store it on the Filesystem
+```
+sudo touch /etc/pki/letsencrypt.key
+sudo chown acme_tiny:acme_tiny /etc/pki/letsencrypt.key
+sudo chmod 600 /etc/pki/letsencrypt.key
+openssl genrsa 4096 | sudo -u acme_tiny tee /etc/pki/letsencrypt.key
 ```
 
 Modify `/etc/.gitignore`
 ```diff
++ pki/*.key
 + pki/nginx/private/
 ```
 
@@ -76,22 +97,21 @@ cd acme-tiny
 
 Create the key and the CSR
 ```
+CN=diarizer.blabbertabber.com
 sudo mkdir -p /etc/pki/nginx/private
 sudo chown -R nginx:nginx /etc/pki/nginx
 sudo chmod 750 /etc/pki/nginx/private
-CN=diarizer.blabbertabber.com
+openssl genrsa 4096 | sudo -u nginx tee /etc/pki/nginx/private/$CN.key
+sudo chmod 440 /etc/pki/nginx/private/$CN.key
 openssl req \
   -new \
-  -keyout $CN.key \
-  -newkey rsa:4096 \
-  -nodes \
+  -key <(sudo -u nginx cat /etc/pki/nginx/private/$CN.key) \
   -sha256 \
-  -subj "/C=US/ST=California/L=San Francisco/O=BlabberTabber/OU=/CN=${CN}/emailAddress=brian.cunnie@gmail.com/subjectAltName=DNS=diarizer.blabbertabber.com,DNS=home.nono.io" \
+  -subj "/C=US/ST=California/L=San Francisco/O=BlabberTabber/OU=/CN=${CN}/emailAddress=brian.cunnie@gmail.com/subjectAltName=DNS:diarizer.blabbertabber.com,DNS:home.nono.io" \
+  -reqexts SAN \
+  -config <(cat /etc/pki/tls/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:diarizer.blabbertabber.com,DNS:home.nono.io,DNS:home.nono.com")) \
   -out $CN.csr
- # store $CN.key in LastPass
-sudo mv $CN.key /etc/pki/nginx/private/
-sudo chown nginx:nginx /etc/pki/nginx/private/$CN.key
-sudo chmod 440 /etc/pki/nginx/private/$CN.key
+ # prepare empty certificate file with proper permissions
 sudo touch /etc/pki/nginx/$CN.crt
 sudo chown acme_tiny:nginx /etc/pki/nginx/$CN.crt
 sudo chmod 664 /etc/pki/nginx/$CN.crt
@@ -101,20 +121,78 @@ Procure the certificate
 ```
 sudo -u acme_tiny \
     python acme_tiny.py \
-        --account-key /etc/pki/nginx/private/$CN.key \
+        --account-key /etc/pki/letsencrypt.key \
         --csr $CN.csr \
         --acme-dir /var/blabbertabber/acme-challenge/ \
         | sudo -u acme_tiny tee /etc/pki/nginx/$CN.crt
 ```
 
-Modify nginx to use https
-```
-sudo vim /etc/nginx/nginx.conf
+Modify `/etc/nginx/nginx.conf` to use https
+```diff
++    server {
++        listen       443 ssl http2 default_server;
++        listen       [::]:443 ssl http2 default_server;
++        server_name  _;
++        root         /var/blabbertabber/diarizer;
++
++        ssl_certificate "/etc/pki/nginx/diarizer.blabbertabber.com.crt";
++        ssl_certificate_key "/etc/pki/nginx/private/diarizer.blabbertabber.com.key";
++        ssl_session_cache shared:SSL:1m;
++        ssl_session_timeout  10m;
++        ssl_ciphers HIGH:!aNULL:!MD5;
++        ssl_prefer_server_ciphers on;
++
++        # Load configuration files for the default server block.
++        include /etc/nginx/default.d/*.conf;
+
++        location / {
++        }
++
++        error_page 404 /404.html;
++            location = /40x.html {
++        }
++
++        error_page 500 502 503 504 /50x.html;
++            location = /50x.html {
++        }
++    }
 ```
 
-Set up cron
+```bash
+sudo systemctl restart nginx.service
 ```
-# TBD
+
+Skeletal page to avoid 404:
+```bash
+sudo mkdir /var/blabbertabber/diarizer
+sudo chown diarizer /var/blabbertabber/diarizer
+echo '<html><title>BlabberTabber</title><body><h1>BlabberTabber</h1></body></html' |
+    sudo -u diarizer tee /var/blabbertabber/diarizer/index.html
+```
+
+Move `acme_tiny.py` into an appropriate directory
+```
+sudo cp ~/workspace/acme-tiny/acme_tiny.py /usr/local/bin/
+```
+
+Create `/etc/cron.weekly/letsencrypt.sh`
+```
+#!/bin/bash
+set -eux
+sudo -u acme_tiny python /usr/local/bin/acme_tiny.py \
+    --account-key /etc/pki/letsencrypt.key \
+    --csr /etc/pki/nginx/diarizer.blabbertabber.com.csr \
+    --acme-dir /var/blabbertabber/acme-challenge > /tmp/signed.crt || exit
+wget -O- https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem > /tmp/intermediate.pem
+cat /tmp/signed.crt /tmp/intermediate.pem |
+    sudo -u acme_tiny tee /etc/pki/nginx/diarizer.blabbertabber.com.crt
+sudo systemctl restart nginx.service
+```
+
+Make it executable and test
+```
+sudo chmod +x /etc/cron.weekly/letsencrypt.sh
+sudo /etc/cron.weekly/letsencrypt.sh
 ```
 
 Cleanup
@@ -122,20 +200,4 @@ Cleanup
 rm ~/workspace/acme-tiny/{*.key,*.csr,*.crt}
 ```
 
-### preparation for `nginx`
-
-One-time set-up:
-```
-sudo mkdir /var/blabbertabber
-sudo adduser \
-    --system \
-    -c "BlabberTabber Diarizer" \
-    -d /var/blabbertabber \
-    -M \
-    -s /sbin/nologin \
-    diarizer
-```
-
-```
-mkdir /var/blabbertabber/nginx
-```
+Copy keys (letsencrypt.key & diarizer.blabbertabber.com) into LastPass
