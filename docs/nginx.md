@@ -26,6 +26,7 @@ Directory Structure:
     * `UploadServer/some-guid` UploadServer saves `.wav` files here
     * `diarizer/index.html` index for <https://diarizer.blabbertabber.com>
     * `diarizer/some-guid` diarizer saves `stdout` here
+    * `acme-challenge/` Let's encrypt work files (SSL certification)
 
 ### preparation for `acme-tiny`
 
@@ -43,7 +44,7 @@ sudo adduser \
 
 Modify `/etc/.gitignore`
 ```diff
-+ /etc/pki/nginx/private/
++ pki/nginx/private/
 ```
 
 Create the challenge directory
@@ -52,7 +53,7 @@ sudo mkdir /var/blabbertabber/acme-challenge
 sudo chown acme_tiny:nginx /var/blabbertabber/acme-challenge
 ```
 
-Modify `etc/nginx/nginx.conf`
+Modify `/etc/nginx/nginx.conf`
 ```diff
 +   location /.well-known/acme-challenge/ {
 +       alias /var/blabbertabber/acme-challenge/;
@@ -62,7 +63,7 @@ Modify `etc/nginx/nginx.conf`
 
 Restart nginx
 ```
-sudo restart nginx
+sudo systemctl restart nginx.service
 ```
 
 Download & install `acme-tiny`
@@ -75,6 +76,9 @@ cd acme-tiny
 
 Create the key and the CSR
 ```
+sudo mkdir -p /etc/pki/nginx/private
+sudo chown -R nginx:nginx /etc/pki/nginx
+sudo chmod 750 /etc/pki/nginx/private
 CN=diarizer.blabbertabber.com
 openssl req \
   -new \
@@ -82,7 +86,7 @@ openssl req \
   -newkey rsa:4096 \
   -nodes \
   -sha256 \
-  -subj "/C=US/ST=California/L=San Francisco/O=BlabberTabber/OU=/CN=${CN}/emailAddress=brian.cunnie@gmail.com/SubjectAltName=DNS.1=home.nono.io" \
+  -subj "/C=US/ST=California/L=San Francisco/O=BlabberTabber/OU=/CN=${CN}/emailAddress=brian.cunnie@gmail.com/subjectAltName=DNS=diarizer.blabbertabber.com,DNS=home.nono.io" \
   -out $CN.csr
  # store $CN.key in LastPass
 sudo mv $CN.key /etc/pki/nginx/private/
@@ -90,16 +94,17 @@ sudo chown nginx:nginx /etc/pki/nginx/private/$CN.key
 sudo chmod 440 /etc/pki/nginx/private/$CN.key
 sudo touch /etc/pki/nginx/$CN.crt
 sudo chown acme_tiny:nginx /etc/pki/nginx/$CN.crt
+sudo chmod 664 /etc/pki/nginx/$CN.crt
 ```
 
 Procure the certificate
 ```
 sudo -u acme_tiny \
-    python acme_tiny.py
+    python acme_tiny.py \
         --account-key /etc/pki/nginx/private/$CN.key \
         --csr $CN.csr \
-        --acme-dir /var/blabbertabber/acme-challenge/
-        > /etc/pki/nginx/$CN.crt
+        --acme-dir /var/blabbertabber/acme-challenge/ \
+        | sudo -u acme_tiny tee /etc/pki/nginx/$CN.crt
 ```
 
 Modify nginx to use https
