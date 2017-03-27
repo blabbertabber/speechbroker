@@ -1,4 +1,4 @@
-## diarizer.blabbertabber.com nginx configuration
+## diarizer.blabbertabber.com Networking
 
 * diarizer.blabbertabber.com has both IPv4 & IPv6 addresses
 * currently maps to home.nono.io (73.15.134.22 and 2601:646:100:e8e8::101)
@@ -201,3 +201,33 @@ rm ~/workspace/acme-tiny/{*.key,*.csr,*.crt}
 ```
 
 Copy keys (letsencrypt.key & diarizer.blabbertabber.com) into LastPass
+
+### Prep Upload Server
+
+Install Docker
+```
+sudo dnf install docker
+sudo systemctl enable docker.service
+sudo groupadd --system docker
+sudo usermod -aG docker cunnie
+sudo usermod -aG docker diarizer
+sudo shutdown -r now
+```
+
+Create directories and run test
+```
+sudo mkdir -p /var/blabbertabber/UploadServer
+sudo chown diarizer /var/blabbertabber/UploadServer
+sudo -u diarizer mkdir -p /var/blabbertabber/UploadServer/3426dfcc-fe5f-4686-9279-d997ef9fb0da
+cd /var/blabbertabber/UploadServer/3426dfcc-fe5f-4686-9279-d997ef9fb0da
+sudo -u diarizer curl -OL https://nono.io/meeting.wav
+sudo -u diarizer mkdir /var/blabbertabber/diarizer/3426dfcc-fe5f-4686-9279-d997ef9fb0da
+sudo -u diarizer \
+     docker run \
+        --volume=/var/blabbertabber:/blabbertabber \
+        --workdir=/speaker-diarization \
+        blabbertabber/aalto-speech-diarizer \
+            /speaker-diarization/spk-diarization2.py \
+                /blabbertabber/UploadServer/3426dfcc-fe5f-4686-9279-d997ef9fb0da/meeting.wav \
+                -o /blabbertabber/diarizer/3426dfcc-fe5f-4686-9279-d997ef9fb0da/results.txt
+```
