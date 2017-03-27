@@ -40,4 +40,4 @@ RUN git clone https://github.com/aalto-speech/speaker-diarization.git; \
     ln -s ../AaltoASR ./ ; \
     ln -s ../AaltoASR/build ./ ; \
     ln -s ../AaltoASR/build/aku/feacat ./ ; \
-    pip install numpy scipy docopt
+    pip install numpy scipy docopt lxml
