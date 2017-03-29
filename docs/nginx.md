@@ -159,6 +159,7 @@ Modify `/etc/nginx/nginx.conf` to use https
 ```
 
 ```bash
+sudo systemctl enable --now nginx.service
 sudo systemctl restart nginx.service
 ```
 
