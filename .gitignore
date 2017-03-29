@@ -26,3 +26,7 @@ _testmain.go
 # JetBrains Gogland files
 *.xml
 *.iml
+
+# Executables
+UploadServer
+main
