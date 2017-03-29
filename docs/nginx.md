@@ -147,6 +147,7 @@ Modify `/etc/nginx/nginx.conf` to use https
 +        include /etc/nginx/default.d/*.conf;
 
 +        location / {
++            autoindex on;
 +        }
 +
 +        error_page 404 /404.html;
