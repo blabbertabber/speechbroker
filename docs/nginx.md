@@ -103,6 +103,7 @@ sudo chown -R nginx:nginx /etc/pki/nginx
 sudo chmod 750 /etc/pki/nginx/private
 openssl genrsa 4096 | sudo -u nginx tee /etc/pki/nginx/private/$CN.key
 sudo chmod 440 /etc/pki/nginx/private/$CN.key
+sudo chown -R nginx:diarizer /etc/pki/nginx/private/
 openssl req \
   -new \
   -key <(sudo -u nginx cat /etc/pki/nginx/private/$CN.key) \
