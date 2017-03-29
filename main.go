@@ -2,6 +2,7 @@ package main
 
 // curl -X POST -F "a=1234" https://diarizer.blabbertabber.com:9443/api/v1/upload
 // curl -X POST -F "meeting.wav=@/Users/cunnie/Google Drive/BlabberTabber/ICSI-diarizer-sample-meeting.wav" https://diarizer.blabbertabber.com:9443/api/v1/upload
+// cleanup: sudo -u diarizer find /var/blabbertabber -name "*-*-*" -exec rm -rf {} \;
 
 import (
 	"fmt"
@@ -16,19 +17,24 @@ import (
 
 const PORT = 9443
 
-var dataRootDir = filepath.FromSlash("/var/blabbertabber/UploadServer/")
+var wavRootDir = filepath.FromSlash("/var/blabbertabber/UploadServer/")
+var resultsRootDir = filepath.FromSlash("/var/blabbertabber/diarizer/")
 var keyPath = filepath.FromSlash("/etc/pki/nginx/private/diarizer.blabbertabber.com.key")
 var certPath = filepath.FromSlash("/etc/pki/nginx/diarizer.blabbertabber.com.crt")
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	conversationUUID := uuid.NewV4()
 	uuid := conversationUUID.String()
-	dataDir := filepath.Join(dataRootDir, uuid)
-	err := os.MkdirAll(dataDir, 0777)
+	wavDir := filepath.Join(wavRootDir, uuid)
+	err := os.MkdirAll(wavDir, 0777)
 	if err != nil {
 		log.Fatal("MkdirAll: ", err)
 	}
-	// bytes, err := ioutil.ReadAll(r.Body)
+	resultsDir := filepath.Join(resultsRootDir, uuid)
+	err = os.MkdirAll(resultsDir, 0777)
+	if err != nil {
+		log.Fatal("MkdirAll: ", err)
+	}
 	reader, err := r.MultipartReader()
 	if err != nil {
 		log.Fatal("MultipartReader: ", err)
@@ -39,7 +45,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		// dst, err := os.Create("/home/sanat/" + part.FileName())
-		dst, err := os.Create(filepath.Join(dataDir, "meeting.wav"))
+		dst, err := os.Create(filepath.Join(wavDir, "meeting.wav"))
 		if err != nil {
 			log.Fatal("Create: ", err)
 		}
