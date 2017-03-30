@@ -234,3 +234,15 @@ sudo -u diarizer \
                 /blabbertabber/soundFiles/3426dfcc-fe5f-4686-9279-d997ef9fb0da/meeting.wav \
                 -o /blabbertabber/diarizationResults/3426dfcc-fe5f-4686-9279-d997ef9fb0da/results.txt
 ```
+
+Install service
+```
+sudo cp DiarizerServer /usr/local/bin/
+sudo chown diarizer:diarizer /usr/local/bin/DiarizerServer
+ # the following is bad; should have other ways to set uid
+sudo chown diarizer:diarizer /usr/local/bin/DiarizerServer
+sudo chmod 6755 /usr/local/bin/DiarizerServer
+sudo cp assets/diarizer.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now diarizer.service
+```
