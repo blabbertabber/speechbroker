@@ -1,6 +1,6 @@
-# UploadServer
+# DiarizerServer
 
-A RESTful server to which you can POST files.
+An HTTPS server which allows you to POST files and in turn diarizes them.
 
 Documentation for BlabberTabber-specific setup can be found
 in `docs/nginx.md`

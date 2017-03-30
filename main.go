@@ -17,16 +17,16 @@ import (
 
 const PORT = 9443
 
-var wavRootDir = filepath.FromSlash("/var/blabbertabber/UploadServer/")
-var resultsRootDir = filepath.FromSlash("/var/blabbertabber/diarizer/")
+var soundRootDir = filepath.FromSlash("/var/blabbertabber/soundFiles/")
+var resultsRootDir = filepath.FromSlash("/var/blabbertabber/diarizationResults/")
 var keyPath = filepath.FromSlash("/etc/pki/nginx/private/diarizer.blabbertabber.com.key")
 var certPath = filepath.FromSlash("/etc/pki/nginx/diarizer.blabbertabber.com.crt")
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	conversationUUID := uuid.NewV4()
 	uuid := conversationUUID.String()
-	wavDir := filepath.Join(wavRootDir, uuid)
-	err := os.MkdirAll(wavDir, 0777)
+	soundDir := filepath.Join(soundRootDir, uuid)
+	err := os.MkdirAll(soundDir, 0777)
 	if err != nil {
 		log.Fatal("MkdirAll: ", err)
 	}
@@ -44,8 +44,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		if err == io.EOF {
 			break
 		}
-		// dst, err := os.Create("/home/sanat/" + part.FileName())
-		dst, err := os.Create(filepath.Join(wavDir, "meeting.wav"))
+		dst, err := os.Create(filepath.Join(soundDir, "meeting.wav"))
 		if err != nil {
 			log.Fatal("Create: ", err)
 		}
@@ -53,8 +52,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		if _, err := io.Copy(dst, part); err != nil {
 			log.Fatal("Copy: ", err)
-			// http.Error(w, err.Error(), http.StatusInternalServerError)
-			// return
 		}
 	}
 	// return weblink to client "https://diarizer.blabbertabber.com/UUID"
@@ -66,8 +63,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		"--workdir=/speaker-diarization",
 		"blabbertabber/aalto-speech-diarizer",
 		"/speaker-diarization/spk-diarization2.py",
-		fmt.Sprintf("/blabbertabber/UploadServer/%s/meeting.wav", uuid),
-		"-o", fmt.Sprintf("/blabbertabber/diarizer/%s/results.txt", uuid))
+		fmt.Sprintf("/blabbertabber/soundFiles/%s/meeting.wav", uuid),
+		"-o", fmt.Sprintf("/blabbertabber/diarizationResults/%s/results.txt", uuid))
 	err = diarizationCommand.Run()
 	if err != nil {
 		log.Fatal("Run: ", err)

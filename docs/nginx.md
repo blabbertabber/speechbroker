@@ -4,26 +4,26 @@
 * currently maps to home.nono.io (73.15.134.22 and 2601:646:100:e8e8::101)
 * tcp4/80,443,9443 is forwarded appropriately
 * tcp6/22,80,443,9443 is allowed
-* UploadServer listens on 9443
+* DiarizerServer listens on 9443
 * nginx listens on 443
 
 URLS:
 
 * <https://diarizer.blabbertabber.com:9443/api/v1/upload>
-  * creates `/var/blabbertabber/UploadServer/some-guid`
-  * creates `/var/blabbertabber/UploadServer/some-guid/meeting.wav`
+  * creates `/var/blabbertabber/soundFiles/some-guid`
+  * creates `/var/blabbertabber/soundFiles/some-guid/meeting.wav`
   * kicks off diarization, i.e.
     ```bash
     docker run blahblah
     ```
-  * saves output to /var/blabbertabber/diarizer/some-guid
+  * saves output to /var/blabbertabber/diarizationResults/some-guid
 
 * <https://diarizer.blabbertabber.com/some-guid/>
 
 Directory Structure:
 
 * `/var/blabbertabber/` datadir
-    * `UploadServer/some-guid` UploadServer saves `.wav` files here
+    * `soundFiles/some-guid` UploadServer saves `.wav` files here
     * `diarizer/index.html` index for <https://diarizer.blabbertabber.com>
     * `diarizer/some-guid` diarizer saves `stdout` here
     * `acme-challenge/` Let's encrypt work files (SSL certification)
@@ -134,7 +134,7 @@ Modify `/etc/nginx/nginx.conf` to use https
 +        listen       443 ssl http2 default_server;
 +        listen       [::]:443 ssl http2 default_server;
 +        server_name  _;
-+        root         /var/blabbertabber/diarizer;
++        root         /var/blabbertabber/diarizationResults;
 +
 +        ssl_certificate "/etc/pki/nginx/diarizer.blabbertabber.com.crt";
 +        ssl_certificate_key "/etc/pki/nginx/private/diarizer.blabbertabber.com.key";
@@ -167,10 +167,10 @@ sudo systemctl restart nginx.service
 
 Skeletal page to avoid 404:
 ```bash
-sudo mkdir /var/blabbertabber/diarizer
-sudo chown diarizer /var/blabbertabber/diarizer
+sudo mkdir /var/blabbertabber/diarizationResults
+sudo chown diarizer /var/blabbertabber/diarizationResults
 echo '<html><title>BlabberTabber</title><body><h1>BlabberTabber</h1></body></html' |
-    sudo -u diarizer tee /var/blabbertabber/diarizer/index.html
+    sudo -u diarizer tee /var/blabbertabber/diarizationResults/index.html
 ```
 
 Move `acme_tiny.py` into an appropriate directory
@@ -219,18 +219,18 @@ sudo shutdown -r now
 
 Create directories and run test
 ```
-sudo mkdir -p /var/blabbertabber/UploadServer
-sudo chown diarizer /var/blabbertabber/UploadServer
-sudo -u diarizer mkdir -p /var/blabbertabber/UploadServer/3426dfcc-fe5f-4686-9279-d997ef9fb0da
-cd /var/blabbertabber/UploadServer/3426dfcc-fe5f-4686-9279-d997ef9fb0da
+sudo mkdir -p /var/blabbertabber/soundFiles
+sudo chown diarizer /var/blabbertabber/soundFiles
+sudo -u diarizer mkdir -p /var/blabbertabber/soundFiles/3426dfcc-fe5f-4686-9279-d997ef9fb0da
+cd /var/blabbertabber/soundFiles/3426dfcc-fe5f-4686-9279-d997ef9fb0da
 sudo -u diarizer curl -OL https://nono.io/meeting.wav
-sudo -u diarizer mkdir /var/blabbertabber/diarizer/3426dfcc-fe5f-4686-9279-d997ef9fb0da
+sudo -u diarizer mkdir /var/blabbertabber/diarizationResults/3426dfcc-fe5f-4686-9279-d997ef9fb0da
 sudo -u diarizer \
      docker run \
         --volume=/var/blabbertabber:/blabbertabber \
         --workdir=/speaker-diarization \
         blabbertabber/aalto-speech-diarizer \
             /speaker-diarization/spk-diarization2.py \
-                /blabbertabber/UploadServer/3426dfcc-fe5f-4686-9279-d997ef9fb0da/meeting.wav \
-                -o /blabbertabber/diarizer/3426dfcc-fe5f-4686-9279-d997ef9fb0da/results.txt
+                /blabbertabber/soundFiles/3426dfcc-fe5f-4686-9279-d997ef9fb0da/meeting.wav \
+                -o /blabbertabber/diarizationResults/3426dfcc-fe5f-4686-9279-d997ef9fb0da/results.txt
 ```
