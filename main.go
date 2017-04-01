@@ -23,7 +23,8 @@ var keyPath = filepath.FromSlash("/etc/pki/nginx/private/diarizer.blabbertabber.
 var certPath = filepath.FromSlash("/etc/pki/nginx/diarizer.blabbertabber.com.crt")
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	conversationUUID := uuid.NewV4()
+	// NewV1() works via timestamp, which I like. Has mutex to avoid collisions
+	conversationUUID := uuid.NewV1()
 	uuid := conversationUUID.String()
 	soundDir := filepath.Join(soundRootDir, uuid)
 	err := os.MkdirAll(soundDir, 0777)
@@ -35,6 +36,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal("MkdirAll: ", err)
 	}
+	dst, err := os.Create(filepath.Join(resultsDir, "00_upload_begun"))
+	if err != nil {
+		log.Fatal("Create: ", err)
+	}
+	dst.Close()
 	reader, err := r.MultipartReader()
 	if err != nil {
 		log.Fatal("MultipartReader: ", err)
@@ -54,8 +60,18 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			log.Fatal("Copy: ", err)
 		}
 	}
+	dst, err = os.Create(filepath.Join(resultsDir, "01_upload_finished"))
+	if err != nil {
+		log.Fatal("Create: ", err)
+	}
+	dst.Close()
 	// return weblink to client "https://diarizer.blabbertabber.com/UUID"
 	w.Write([]byte(fmt.Sprint("https://diarizer.blabbertabber.com/", uuid)))
+	dst, err = os.Create(filepath.Join(resultsDir, "02_diarization_begun"))
+	if err != nil {
+		log.Fatal("Create: ", err)
+	}
+	dst.Close()
 	// kick off diarization in the background
 	diarizationCommand := exec.Command("docker",
 		"run",
@@ -69,6 +85,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal("Run: ", err)
 	}
+	dst, err = os.Create(filepath.Join(resultsDir, "03_diarization_finished"))
+	if err != nil {
+		log.Fatal("Create: ", err)
+	}
+	dst.Close()
 }
 
 func main() {
