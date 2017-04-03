@@ -15,7 +15,8 @@ import (
 	"path/filepath"
 )
 
-const PORT = 9443
+const CLEAR_PORT = ":8080" // for troubleshooting in cleartext
+const SSL_PORT = ":9443"
 
 var soundRootDir = filepath.FromSlash("/var/blabbertabber/soundFiles/")
 var resultsRootDir = filepath.FromSlash("/var/blabbertabber/diarizationResults/")
@@ -94,8 +95,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/api/v1/upload", handler)
-	err := http.ListenAndServeTLS(fmt.Sprintf(":%d", PORT), certPath, keyPath, nil)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
+
+	go func() {
+		log.Fatal(http.ListenAndServe(CLEAR_PORT, nil))
+
+	}()
+	log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%d", SSL_PORT), certPath, keyPath, nil))
 }
