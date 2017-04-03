@@ -1,7 +1,8 @@
 package main
 
-// curl -X POST -F "a=1234" https://diarizer.blabbertabber.com:9443/api/v1/upload
-// curl -X POST -F "meeting.wav=@/Users/cunnie/Google Drive/BlabberTabber/ICSI-diarizer-sample-meeting.wav" https://diarizer.blabbertabber.com:9443/api/v1/upload
+// curl -F "a=1234" https://diarizer.blabbertabber.com:9443/api/v1/upload
+// curl -F "meeting.wav=@/Users/cunnie/Google Drive/BlabberTabber/ICSI-diarizer-sample-meeting.wav" https://diarizer.blabbertabber.com:9443/api/v1/upload
+// curl --trace - -F "meeting.wav=@/dev/null" http://diarizer.blabbertabber.com:8080/api/v1/upload
 // cleanup: sudo -u diarizer find /var/blabbertabber -name "*-*-*" -exec rm -rf {} \;
 
 import (
@@ -100,5 +101,5 @@ func main() {
 		log.Fatal(http.ListenAndServe(CLEAR_PORT, nil))
 
 	}()
-	log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%d", SSL_PORT), certPath, keyPath, nil))
+	log.Fatal(http.ListenAndServeTLS(fmt.Sprintf( SSL_PORT), certPath, keyPath, nil))
 }
