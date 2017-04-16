@@ -4,7 +4,7 @@
 #   docker run -it blabbertabber/cmu-sphinx4 bash
 #   cd /sphinx4-5prealpha-src
 #   curl -k -OL https://nono.io/meeting.wav  # sample .wav; substitute yours
-
+#   java -Xmx2g -cp sphinx4-5prealpha-src/sphinx4-samples/build/libs/sphinx4-samples-5prealpha-SNAPSHOT.jar edu.cmu.sphinx.demo.speakerid.SpeakerIdentificationDemo
 
 FROM fedora
 
@@ -23,5 +23,7 @@ RUN curl -L "https://downloads.sourceforge.net/project/cmusphinx/sphinx4/5prealp
   unzip sphinx4-5prealpha-src.zip ; \
   cd sphinx4-5prealpha-src/ ; \
   gradle build ; \
+  ( cd sphinx4-samples/ ; gradle build )
 
+RUN rm /sphinx4-5prealpha-src.zip
 # curl -OL "https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/US%20English/cmusphinx-en-us-8khz-5.2.tar.gz/download"
