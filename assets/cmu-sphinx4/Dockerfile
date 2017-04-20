@@ -10,7 +10,7 @@ FROM fedora
 LABEL authors="Brian Cunnie <brian.cunnie@gmail.com>, Brendan Cunnie <saintbrendan@gmail.com>"
 
 RUN dnf groupinstall -y "Development Tools"; \
-    dnf install -y zip file less gradle
+    dnf install -y zip file less vim gradle
 
 # fix: org.apache.http.ssl.SSLInitializationException: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.121-10.b14.fc25.x86_64/jre/lib/security/cacerts (No such file or directory)
 RUN for DIR in /usr/lib/jvm/*/jre/lib/security/; do \
