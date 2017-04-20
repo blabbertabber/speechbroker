@@ -69,12 +69,21 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	dst.Close()
 	// return weblink to client "https://diarizer.blabbertabber.com/UUID"
 	w.Write([]byte(fmt.Sprint("https://diarizer.blabbertabber.com/", uuid)))
-	dst, err = os.Create(filepath.Join(resultsDir, "02_diarization_begun"))
+	dst, err = os.Create(filepath.Join(resultsDir, "03_transcription_begun"))
 	if err != nil {
 		log.Fatal("Create: ", err)
 	}
 	dst.Close()
-	// kick off diarization in the background
+	go diarize(resultsDir, uuid)
+	go transcribe(resultsDir, uuid)
+}
+
+func diarize(resultsDir string, uuid string) {
+	dst, err := os.Create(filepath.Join(resultsDir, "diarization_begun"))
+	if err != nil {
+		log.Fatal("Create: ", err)
+	}
+	dst.Close()
 	diarizationCommand := exec.Command("docker",
 		"run",
 		"--volume=/var/blabbertabber:/blabbertabber",
@@ -84,10 +93,29 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		fmt.Sprintf("/blabbertabber/soundFiles/%s/meeting.wav", uuid),
 		"-o", fmt.Sprintf("/blabbertabber/diarizationResults/%s/results.txt", uuid))
 	err = diarizationCommand.Run()
+	dst, err = os.Create(filepath.Join(resultsDir, "diarization_finished"))
 	if err != nil {
-		log.Fatal("Run: ", err)
+		log.Fatal("Create: ", err)
 	}
-	dst, err = os.Create(filepath.Join(resultsDir, "03_diarization_finished"))
+	dst.Close()
+}
+
+func transcribe(resultsDir string, uuid string) {
+	dst, err := os.Create(filepath.Join(resultsDir, "transcription_begun"))
+	if err != nil {
+		log.Fatal("Create: ", err)
+	}
+	dst.Close()
+	transcriptionCommand := exec.Command("docker",
+		"run",
+		"--volume=/var/blabbertabber:/blabbertabber",
+		"--workdir=/speaker-diarization",
+		"blabbertabber/aalto-speech-diarizer",
+		"/speaker-diarization/spk-diarization2.py",
+		fmt.Sprintf("/blabbertabber/soundFiles/%s/meeting.wav", uuid),
+		"-o", fmt.Sprintf("/blabbertabber/diarizationResults/%s/results.txt", uuid))
+	err = transcriptionCommand.Run()
+	dst, err = os.Create(filepath.Join(resultsDir, "transcription_finished"))
 	if err != nil {
 		log.Fatal("Create: ", err)
 	}
