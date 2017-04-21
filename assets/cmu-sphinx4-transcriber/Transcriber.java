@@ -1,4 +1,9 @@
 // copied from CMU Sphinx Samples
+// typical invocation:
+//
+// javac Transcriber.java -cp /sphinx4-5prealpha-src/sphinx4-core/build/libs/sphinx4-core-5prealpha-SNAPSHOT.jar
+// java -Xmx2g -cp /sphinx4-5prealpha-src/sphinx4-core/build/libs/sphinx4-core-5prealpha-SNAPSHOT.jar:/sphinx4-5prealpha-src/sphinx4-data/build/libs/sphinx4-data-5prealpha-SNAPSHOT.jar:. transcriber.Transcriber
+//
 // We don't need no package 'cause we're bad boys
 // package com.example;
 
@@ -14,6 +19,9 @@ public class Transcriber {
 
     public static void main(String[] args) throws Exception {
 
+        String infile = args[0];
+        String outfile = args[1];
+
         Configuration configuration = new Configuration();
 
         configuration
@@ -25,9 +33,10 @@ public class Transcriber {
 
         StreamSpeechRecognizer recognizer = new StreamSpeechRecognizer(
                 configuration);
-        InputStream stream = new FileInputStream(new File("meeting.wav"));
+        InputStream input  = new FileInputStream(new File(infile));
+        OutputStream output = new FileOutputStream(new File(outfile));
 
-        recognizer.startRecognition(stream);
+        recognizer.startRecognition(input);
         SpeechResult result;
         while ((result = recognizer.getResult()) != null) {
             System.out.format("Hypothesis: %s\n", result.getHypothesis());
