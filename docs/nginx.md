@@ -246,3 +246,17 @@ sudo cp assets/diarizer.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now diarizer.service
 ```
+
+Updating service
+```bash
+cd $GOPATH/src/github.com/blabbertabber/DiarizerServer
+git pull -r
+go build
+sudo systemctl stop diarizer.service
+sudo -u diarizer ./DiarizerServer
+ # run BlabberTabber, upload file, check output -- .txt files there?
+ # if not, debug and repeat
+sudo cp DiarizerServer /usr/local/bin/
+sudo chmod 6755 /usr/local/bin/DiarizerServer
+sudo systemctl start diarizer.service
+```
