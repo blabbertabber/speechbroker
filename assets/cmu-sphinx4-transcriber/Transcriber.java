@@ -2,14 +2,17 @@
 // typical invocation:
 //
 // javac Transcriber.java -cp /sphinx4-5prealpha-src/sphinx4-core/build/libs/sphinx4-core-5prealpha-SNAPSHOT.jar
-// java -Xmx2g -cp /sphinx4-5prealpha-src/sphinx4-core/build/libs/sphinx4-core-5prealpha-SNAPSHOT.jar:/sphinx4-5prealpha-src/sphinx4-data/build/libs/sphinx4-data-5prealpha-SNAPSHOT.jar:. transcriber.Transcriber
+// java -Xmx2g -cp /sphinx4-5prealpha-src/sphinx4-core/build/libs/sphinx4-core-5prealpha-SNAPSHOT.jar:/sphinx4-5prealpha-src/sphinx4-data/build/libs/sphinx4-data-5prealpha-SNAPSHOT.jar:. Transcriber meeting.wav transcription.txt
 //
 // We don't need no package 'cause we're bad boys
 // package com.example;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 import edu.cmu.sphinx.api.Configuration;
 import edu.cmu.sphinx.api.SpeechResult;
@@ -39,7 +42,7 @@ public class Transcriber {
         recognizer.startRecognition(input);
         SpeechResult result;
         while ((result = recognizer.getResult()) != null) {
-            System.out.format("Hypothesis: %s\n", result.getHypothesis());
+            output.write(result.getHypothesis().getBytes(StandardCharsets.UTF_8));
         }
         recognizer.stopRecognition();
     }
