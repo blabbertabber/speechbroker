@@ -257,6 +257,5 @@ sudo -u diarizer ./DiarizerServer
  # run BlabberTabber, upload file, check output -- .txt files there?
  # if not, debug and repeat
 sudo cp DiarizerServer /usr/local/bin/
-sudo chmod 6755 /usr/local/bin/DiarizerServer
 sudo systemctl start diarizer.service
 ```
