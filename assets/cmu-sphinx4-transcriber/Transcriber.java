@@ -42,7 +42,7 @@ public class Transcriber {
         recognizer.startRecognition(input);
         SpeechResult result;
         while ((result = recognizer.getResult()) != null) {
-            output.write(result.getHypothesis().getBytes(StandardCharsets.UTF_8));
+            output.write((result.getHypothesis() + "\n").getBytes(StandardCharsets.UTF_8));
         }
         recognizer.stopRecognition();
     }
