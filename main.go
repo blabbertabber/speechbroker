@@ -96,6 +96,9 @@ func diarize(resultsDir string, uuid string) {
 		meetingWavFilepath,
 		"-o", diarizationFilepath)
 	err = diarizationCommand.Run()
+	if err != nil {
+		log.Fatal("Diarize: ", err)
+	}
 	dst, err = os.Create(filepath.Join(resultsDir, "diarization_finished"))
 	if err != nil {
 		log.Fatal("Create: ", err)
@@ -124,6 +127,9 @@ func transcribe(resultsDir string, uuid string) {
 		meetingWavFilepath,
 		transcriptionFilepath)
 	err = transcriptionCommand.Run()
+	if err != nil {
+		log.Fatal("Transcribe: ", err)
+	}
 	dst, err = os.Create(filepath.Join(resultsDir, "transcription_finished"))
 	if err != nil {
 		log.Fatal("Create: ", err)
