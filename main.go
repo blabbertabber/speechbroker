@@ -74,19 +74,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("Create: ", err)
 	}
 	dst.Close()
-	go diarize(resultsDir, uuid)
-	go transcribe(resultsDir, uuid)
-}
-
-func diarize(resultsDir string, uuid string) {
-	dst, err := os.Create(filepath.Join(resultsDir, "diarization_begun"))
-	if err != nil {
-		log.Fatal("Create: ", err)
-	}
-	dst.Close()
 	meetingWavFilepath := fmt.Sprintf("/blabbertabber/soundFiles/%s/meeting.wav", uuid)
 	diarizationFilepath := fmt.Sprintf("/blabbertabber/diarizationResults/%s/diarization.txt", uuid)
-	diarizationCommand := exec.Command("docker",
+	diarizationCommand := []string{
+		"docker",
 		"run",
 		"--volume=/var/blabbertabber:/blabbertabber",
 		"--workdir=/speaker-diarization",
@@ -94,27 +85,12 @@ func diarize(resultsDir string, uuid string) {
 		"blabbertabber/aalto-speech-diarizer",
 		"/speaker-diarization/spk-diarization2.py",
 		meetingWavFilepath,
-		"-o", diarizationFilepath)
-	err = diarizationCommand.Run()
-	if err != nil {
-		log.Fatal("Diarize: ", err)
+		"-o",
+		diarizationFilepath,
 	}
-	dst, err = os.Create(filepath.Join(resultsDir, "diarization_finished"))
-	if err != nil {
-		log.Fatal("Create: ", err)
-	}
-	dst.Close()
-}
-
-func transcribe(resultsDir string, uuid string) {
-	dst, err := os.Create(filepath.Join(resultsDir, "transcription_begun"))
-	if err != nil {
-		log.Fatal("Create: ", err)
-	}
-	dst.Close()
-	meetingWavFilepath := fmt.Sprintf("/blabbertabber/soundFiles/%s/meeting.wav", uuid)
 	transcriptionFilepath := fmt.Sprintf("/blabbertabber/soundFiles/%s/transcription.txt", uuid)
-	transcriptionCommand := exec.Command("docker",
+	transcriptionCommand := []string{
+		"docker",
 		"run",
 		"--volume=/var/blabbertabber:/blabbertabber",
 		"--cpus=1",
@@ -125,16 +101,21 @@ func transcribe(resultsDir string, uuid string) {
 		"/sphinx4-5prealpha-src/sphinx4-core/build/libs/sphinx4-core-5prealpha-SNAPSHOT.jar:/sphinx4-5prealpha-src/sphinx4-data/build/libs/sphinx4-data-5prealpha-SNAPSHOT.jar:.",
 		"Transcriber",
 		meetingWavFilepath,
-		transcriptionFilepath)
-	err = transcriptionCommand.Run()
-	if err != nil {
-		log.Fatal("Transcribe: ", err)
+		transcriptionFilepath,
 	}
-	dst, err = os.Create(filepath.Join(resultsDir, "transcription_finished"))
+	diarizeOrTranscribe("diarization", resultsDir, diarizationCommand...)
+	diarizeOrTranscribe("transcription", resultsDir, transcriptionCommand...)
+}
+
+func diarizeOrTranscribe(action string, resultsDir string, dockerCommandArgs ...string) {
+	dst, err := os.Create(filepath.Join(resultsDir, action+"_begun"))
 	if err != nil {
 		log.Fatal("Create: ", err)
 	}
 	dst.Close()
+	command := exec.Command("docker", dockerCommandArgs...)
+	command.Run()
+
 }
 
 func main() {
