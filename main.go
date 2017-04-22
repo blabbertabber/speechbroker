@@ -101,8 +101,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		meetingWavFilepath,
 		transcriptionFilepath,
 	}
-	diarizeOrTranscribe("diarization", resultsDir, diarizationCommand...)
-	diarizeOrTranscribe("transcription", resultsDir, transcriptionCommand...)
+	go diarizeOrTranscribe("diarization", resultsDir, diarizationCommand...)
+	go diarizeOrTranscribe("transcription", resultsDir, transcriptionCommand...)
 }
 
 func diarizeOrTranscribe(action string, resultsDir string, dockerCommandArgs ...string) {
