@@ -9,11 +9,13 @@ import (
 	"fmt"
 	"github.com/satori/go.uuid"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 const CLEAR_PORT = ":8080" // for troubleshooting in cleartext
@@ -109,13 +111,28 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func diarizeOrTranscribe(action string, resultsDir string, dockerCommandArgs ...string) {
 	dst, err := os.Create(filepath.Join(resultsDir, action+"_begun"))
+	log.Print(strings.Join(dockerCommandArgs, " "+"\n"))
 	if err != nil {
 		log.Fatal("Create: ", err)
 	}
 	dst.Close()
 	command := exec.Command("docker", dockerCommandArgs...)
-	command.Run()
+	stderr, err := command.StderrPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	if err := command.Start(); err != nil {
+		log.Fatal(err)
+	}
+
+	slurp, _ := ioutil.ReadAll(stderr)
+	log.Printf("%s\n", slurp)
+
+	if err := command.Wait(); err != nil {
+		log.Fatal(err)
+	}
+	dst, err = os.Create(filepath.Join(resultsDir, action+"_ended"))
 }
 
 func main() {
