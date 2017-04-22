@@ -79,23 +79,19 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	meetingWavFilepath := fmt.Sprintf("/blabbertabber/soundFiles/%s/meeting.wav", uuid)
 	diarizationFilepath := fmt.Sprintf("/blabbertabber/diarizationResults/%s/diarization.txt", uuid)
 	diarizationCommand := []string{
-		"docker",
 		"run",
 		"--volume=/var/blabbertabber:/blabbertabber",
 		"--workdir=/speaker-diarization",
-		"--cpus=1",
 		"blabbertabber/aalto-speech-diarizer",
 		"/speaker-diarization/spk-diarization2.py",
 		meetingWavFilepath,
 		"-o",
 		diarizationFilepath,
 	}
-	transcriptionFilepath := fmt.Sprintf("/blabbertabber/soundFiles/%s/transcription.txt", uuid)
+	transcriptionFilepath := fmt.Sprintf("/blabbertabber/diarizationResults/%s/transcription.txt", uuid)
 	transcriptionCommand := []string{
-		"docker",
 		"run",
 		"--volume=/var/blabbertabber:/blabbertabber",
-		"--cpus=1",
 		"blabbertabber/cmu-sphinx4-transcriber",
 		"java",
 		"-Xmx2g",
