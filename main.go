@@ -84,14 +84,17 @@ func diarize(resultsDir string, uuid string) {
 		log.Fatal("Create: ", err)
 	}
 	dst.Close()
+	meetingWavFilepath := fmt.Sprintf("/blabbertabber/soundFiles/%s/meeting.wav", uuid)
+	diarizationFilepath := fmt.Sprintf("/blabbertabber/diarizationResults/%s/diarization.txt", uuid)
 	diarizationCommand := exec.Command("docker",
 		"run",
 		"--volume=/var/blabbertabber:/blabbertabber",
 		"--workdir=/speaker-diarization",
+		"--cpus=1",
 		"blabbertabber/aalto-speech-diarizer",
 		"/speaker-diarization/spk-diarization2.py",
-		fmt.Sprintf("/blabbertabber/soundFiles/%s/meeting.wav", uuid),
-		"-o", fmt.Sprintf("/blabbertabber/diarizationResults/%s/results.txt", uuid))
+		meetingWavFilepath,
+		"-o", diarizationFilepath)
 	err = diarizationCommand.Run()
 	dst, err = os.Create(filepath.Join(resultsDir, "diarization_finished"))
 	if err != nil {
@@ -106,14 +109,20 @@ func transcribe(resultsDir string, uuid string) {
 		log.Fatal("Create: ", err)
 	}
 	dst.Close()
+	meetingWavFilepath := fmt.Sprintf("/blabbertabber/soundFiles/%s/meeting.wav", uuid)
+	transcriptionFilepath := fmt.Sprintf("/blabbertabber/soundFiles/%s/transcription.txt", uuid)
 	transcriptionCommand := exec.Command("docker",
 		"run",
 		"--volume=/var/blabbertabber:/blabbertabber",
-		"--workdir=/speaker-diarization",
-		"blabbertabber/aalto-speech-diarizer",
-		"/speaker-diarization/spk-diarization2.py",
-		fmt.Sprintf("/blabbertabber/soundFiles/%s/meeting.wav", uuid),
-		"-o", fmt.Sprintf("/blabbertabber/diarizationResults/%s/results.txt", uuid))
+		"--cpus=1",
+		"blabbertabber/cmu-sphinx4-transcriber",
+		"java",
+		"-Xmx2g",
+		"-cp",
+		"/sphinx4-5prealpha-src/sphinx4-core/build/libs/sphinx4-core-5prealpha-SNAPSHOT.jar:/sphinx4-5prealpha-src/sphinx4-data/build/libs/sphinx4-data-5prealpha-SNAPSHOT.jar:.",
+		"Transcriber",
+		meetingWavFilepath,
+		transcriptionFilepath)
 	err = transcriptionCommand.Run()
 	dst, err = os.Create(filepath.Join(resultsDir, "transcription_finished"))
 	if err != nil {
@@ -129,5 +138,5 @@ func main() {
 		log.Fatal(http.ListenAndServe(CLEAR_PORT, nil))
 
 	}()
-	log.Fatal(http.ListenAndServeTLS(fmt.Sprintf( SSL_PORT), certPath, keyPath, nil))
+	log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(SSL_PORT), certPath, keyPath, nil))
 }
