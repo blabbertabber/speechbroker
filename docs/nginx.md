@@ -247,6 +247,12 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now diarizer.service
 ```
 
+Privacy Policy (7 days, prune anything older than 6 days = 24 * 60 * 6 = 8640 minutes). Append the following
+line to `/etc/crontab`
+```bash
+23 0 *  *  *  * diarizer   find /var/blabbertabber/soundFiles/ -name '*-*-*-*' -type d -mmin +8640 -exec rm -rf {} \;
+```
+
 Updating service
 ```bash
 cd $GOPATH/src/github.com/blabbertabber/DiarizerServer
