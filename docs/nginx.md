@@ -110,7 +110,7 @@ openssl req \
   -sha256 \
   -subj "/C=US/ST=California/L=San Francisco/O=BlabberTabber/OU=/CN=${CN}/emailAddress=brian.cunnie@gmail.com/subjectAltName=DNS:diarizer.blabbertabber.com,DNS:home.nono.io" \
   -reqexts SAN \
-  -config <(cat /etc/pki/tls/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:diarizer.blabbertabber.com,DNS:home.nono.io,DNS:home.nono.com")) \
+  -config <(cat /etc/pki/tls/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:diarizer.blabbertabber.com,DNS:home.nono.io,DNS:home.nono.com,DNS:diarizer.com")) \
   -out $CN.csr
  # prepare empty certificate file with proper permissions
 sudo touch /etc/pki/nginx/$CN.crt
