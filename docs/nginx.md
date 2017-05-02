@@ -2,12 +2,12 @@
 
 * diarizer.blabbertabber.com has both IPv4 & IPv6 addresses
 * currently maps to home.nono.io (73.15.134.22 and 2601:646:100:e8e8::101)
-* tcp4/80,443,9443 is forwarded appropriately
+* tcp4/22,80,443,9443 is forwarded appropriately
 * tcp6/22,80,443,9443 is allowed
 * DiarizerServer listens on 9443
 * nginx listens on 443
 
-URLS:
+### URLS:
 
 * <https://diarizer.blabbertabber.com:9443/api/v1/upload>
   * creates `/var/blabbertabber/soundFiles/some-guid`
@@ -20,13 +20,18 @@ URLS:
 
 * <https://diarizer.blabbertabber.com/some-guid/>
 
-Directory Structure:
+### Directory Structure:
 
 * `/var/blabbertabber/` datadir
     * `soundFiles/some-guid` UploadServer saves `.wav` files here
     * `diarizer/index.html` index for <https://diarizer.blabbertabber.com>
     * `diarizer/some-guid` diarizer saves `stdout` here
     * `acme-challenge/` Let's encrypt work files (SSL certification)
+
+### GitHub
+
+Files in https://github.com/cunnie/fedora.nono.io-etc take precedence over files
+listed here in `/etc/`
 
 ### preparation for `acme-tiny`
 
@@ -108,7 +113,7 @@ openssl req \
   -new \
   -key <(sudo -u nginx cat /etc/pki/nginx/private/$CN.key) \
   -sha256 \
-  -subj "/C=US/ST=California/L=San Francisco/O=BlabberTabber/OU=/CN=${CN}/emailAddress=brian.cunnie@gmail.com/subjectAltName=DNS:diarizer.blabbertabber.com,DNS:home.nono.io" \
+  -subj "/C=US/ST=California/L=San Francisco/O=BlabberTabber/OU=/CN=${CN}/emailAddress=brian.cunnie@gmail.com" \
   -reqexts SAN \
   -config <(cat /etc/pki/tls/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:diarizer.blabbertabber.com,DNS:home.nono.io,DNS:home.nono.com,DNS:diarizer.com")) \
   -out $CN.csr
