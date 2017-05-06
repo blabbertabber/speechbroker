@@ -70,7 +70,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	dst.Close()
 	// return weblink to client "https://diarizer.blabbertabber.com/UUID"
-	w.Write([]byte(fmt.Sprint("https://diarizer.blabbertabber.com/", uuid)))
+	w.Write([]byte(fmt.Sprint("https://diarizer.com?meeting=", uuid)))
 	dst, err = os.Create(filepath.Join(resultsDir, "03_transcription_begun"))
 	if err != nil {
 		log.Fatal("Create: ", err)
