@@ -260,6 +260,7 @@ line to `/etc/crontab`
 
 Updating service
 ```bash
+ssh -i /c/Users/saint/.ssh/id_github saintbrendan@diarizer.com
 cd $GOPATH/src/github.com/blabbertabber/DiarizerServer
 git pull -r
 go build
