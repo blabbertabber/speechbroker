@@ -1,6 +1,6 @@
-## diarizer.blabbertabber.com Networking
+## diarizer.com Networking
 
-* diarizer.blabbertabber.com has both IPv4 & IPv6 addresses
+* diarizer.com has both IPv4 & IPv6 addresses
 * currently maps to home.nono.io (73.15.134.22 and 2601:646:100:e8e8::101)
 * tcp4/22,80,443,9443 is forwarded appropriately
 * tcp6/22,80,443,9443 is allowed
@@ -9,7 +9,7 @@
 
 ### URLS:
 
-* <https://diarizer.blabbertabber.com:9443/api/v1/upload>
+* <https://diarizer.com:9443/api/v1/upload>
   * creates `/var/blabbertabber/soundFiles/some-guid`
   * creates `/var/blabbertabber/soundFiles/some-guid/meeting.wav`
   * kicks off diarization, i.e.
@@ -18,13 +18,13 @@
     ```
   * saves output to /var/blabbertabber/diarizationResults/some-guid
 
-* <https://diarizer.blabbertabber.com/some-guid/>
+* <https://diarizer.com/some-guid/>
 
 ### Directory Structure:
 
 * `/var/blabbertabber/` datadir
     * `soundFiles/some-guid` UploadServer saves `.wav` files here
-    * `diarizer/index.html` index for <https://diarizer.blabbertabber.com>
+    * `diarizer/index.html` index for <https://diarizer.com>
     * `diarizer/some-guid` diarizer saves `stdout` here
     * `acme-challenge/` Let's encrypt work files (SSL certification)
 
@@ -32,6 +32,27 @@
 
 Files in https://github.com/cunnie/fedora.nono.io-etc take precedence over files
 listed here in `/etc/`
+
+### Prerequisites
+
+```bash
+sudo dnf install vim git docker nginx python golang htop
+```
+
+disable selinux (it's the biggest goddamn pain in the butt)
+
+```
+vim /etc/sysconfig/selinux
+```
+
+```diff
+-SELINUX=enforcing
++SELINUX=permissive
+```
+
+```
+sudo shutdown -r now
+```
 
 ### preparation for `acme-tiny`
 
@@ -94,7 +115,7 @@ sudo systemctl restart nginx.service
 
 Download & install `acme-tiny`
 ```
-CN=diarizer.blabbertabber.com
+CN=diarizer.com
 cd ~/workspace
 git clone git@github.com:diafygi/acme-tiny.git
 cd acme-tiny
@@ -102,7 +123,7 @@ cd acme-tiny
 
 Create the key and the CSR
 ```
-CN=diarizer.blabbertabber.com
+CN=diarizer.com
 sudo mkdir -p /etc/pki/nginx/private
 sudo chown -R nginx:nginx /etc/pki/nginx
 sudo chmod 750 /etc/pki/nginx/private
@@ -115,7 +136,7 @@ openssl req \
   -sha256 \
   -subj "/C=US/ST=California/L=San Francisco/O=BlabberTabber/OU=/CN=${CN}/emailAddress=brian.cunnie@gmail.com" \
   -reqexts SAN \
-  -config <(cat /etc/pki/tls/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:diarizer.blabbertabber.com,DNS:home.nono.io,DNS:home.nono.com,DNS:diarizer.com")) \
+  -config <(cat /etc/pki/tls/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:diarizer.com,DNS:home.nono.io,DNS:home.nono.com,DNS:diarizer.com")) \
   -out $CN.csr
  # prepare empty certificate file with proper permissions
 sudo touch /etc/pki/nginx/$CN.crt
@@ -141,8 +162,8 @@ Modify `/etc/nginx/nginx.conf` to use https
 +        server_name  _;
 +        root         /var/blabbertabber/diarizationResults;
 +
-+        ssl_certificate "/etc/pki/nginx/diarizer.blabbertabber.com.crt";
-+        ssl_certificate_key "/etc/pki/nginx/private/diarizer.blabbertabber.com.key";
++        ssl_certificate "/etc/pki/nginx/diarizer.com.crt";
++        ssl_certificate_key "/etc/pki/nginx/private/diarizer.com.key";
 +        ssl_session_cache shared:SSL:1m;
 +        ssl_session_timeout  10m;
 +        ssl_ciphers HIGH:!aNULL:!MD5;
@@ -189,11 +210,11 @@ Create `/etc/cron.weekly/letsencrypt.sh`
 set -eux
 sudo -u acme_tiny python /usr/local/bin/acme_tiny.py \
     --account-key /etc/pki/letsencrypt.key \
-    --csr /etc/pki/nginx/diarizer.blabbertabber.com.csr \
+    --csr /etc/pki/nginx/diarizer.com.csr \
     --acme-dir /var/blabbertabber/acme-challenge > /tmp/signed.crt || exit
 wget -O- https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem > /tmp/intermediate.pem
 cat /tmp/signed.crt /tmp/intermediate.pem |
-    sudo -u acme_tiny tee /etc/pki/nginx/diarizer.blabbertabber.com.crt
+    sudo -u acme_tiny tee /etc/pki/nginx/diarizer.com.crt
 sudo systemctl restart nginx.service
 ```
 
@@ -208,13 +229,12 @@ Cleanup
 rm ~/workspace/acme-tiny/{*.key,*.csr,*.crt}
 ```
 
-Copy keys (letsencrypt.key & diarizer.blabbertabber.com) into LastPass
+Copy keys (letsencrypt.key & diarizer.com) into LastPass
 
 ### Prep Upload Server
 
 Install Docker
 ```
-sudo dnf install docker
 sudo systemctl enable docker.service
 sudo groupadd --system docker
 sudo usermod -aG docker cunnie
