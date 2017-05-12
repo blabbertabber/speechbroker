@@ -161,8 +161,8 @@ Modify `/etc/nginx/nginx.conf` to use https
 +        server_name  _;
 +        root         /var/blabbertabber/diarizationResults;
 +
-+        ssl_certificate "/etc/pki/nginx/diarizer.com.crt";
-+        ssl_certificate_key "/etc/pki/nginx/private/diarizer.com.key";
++        ssl_certificate "/etc/pki/nginx/server.crt";
++        ssl_certificate_key "/etc/pki/nginx/private/server.key";
 +        ssl_session_cache shared:SSL:1m;
 +        ssl_session_timeout  10m;
 +        ssl_ciphers HIGH:!aNULL:!MD5;
@@ -268,16 +268,3 @@ line to `/etc/crontab`
 23 0 *  *  *  * diarizer   find /var/blabbertabber/soundFiles/ -name '*-*-*-*' -type d -mmin +8640 -exec rm -rf {} \;
 ```
 
-Updating service
-```bash
-ssh -i /c/Users/saint/.ssh/id_github saintbrendan@diarizer.com
-cd $GOPATH/src/github.com/blabbertabber/DiarizerServer
-git pull -r
-go build
-sudo systemctl stop diarizer.service
-sudo -u diarizer ./DiarizerServer
- # run BlabberTabber, upload file, check output -- .txt files there?
- # if not, debug and repeat
-sudo cp DiarizerServer /usr/local/bin/
-sudo systemctl start diarizer.service
-```
