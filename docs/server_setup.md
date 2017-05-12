@@ -120,7 +120,7 @@ git clone git@github.com:diafygi/acme-tiny.git
 cd acme-tiny
 ```
 
-Create the key and the CSR
+Create the key and the CSR; remember to adjust the subjectAltName to whichever server you're configuring.
 ```
 CN=diarizer.com
 sudo mkdir -p /etc/pki/nginx/private
@@ -203,23 +203,14 @@ Move `acme_tiny.py` into an appropriate directory
 sudo cp ~/workspace/acme-tiny/acme_tiny.py /usr/local/bin/
 ```
 
-Create `/etc/cron.weekly/letsencrypt.sh`
+Copy cronjob into place to keep SSL certificates fresh:
 ```
-#!/bin/bash
-set -eux
-sudo -u acme_tiny python /usr/local/bin/acme_tiny.py \
-    --account-key /etc/pki/letsencrypt.key \
-    --csr /etc/pki/nginx/server.csr \
-    --acme-dir /var/blabbertabber/acme-challenge > /tmp/signed.crt || exit
-wget -O- https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem > /tmp/intermediate.pem
-cat /tmp/signed.crt /tmp/intermediate.pem |
-    sudo -u acme_tiny tee /etc/pki/nginx/server.crt
-sudo systemctl restart nginx.service
+sudo cp $GOPATH/src/github.com/blabbertabber/DiarizerServer/assets/cron.weekly.sh \
+  /etc/cron.weekly/letsencrypt.sh
 ```
 
 Make it executable and test
 ```
-sudo chmod +x /etc/cron.weekly/letsencrypt.sh
 sudo /etc/cron.weekly/letsencrypt.sh
 ```
 
