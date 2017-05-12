@@ -38,5 +38,13 @@ sudo systemctl start diarizer.service
 First, test. Webstorm should be configured to point to the test server by default, so you it should automatically
 publish.
 
+Here's a good url to test: <https://test.diarizer.com/?m=test>
+
 When everything works, you can publish to production:
 in Webstorm: **Tools &rarr; Deployment &rarr; Upload to ... &rarr; diarizer.com**
+
+If you want to upload a wav file _without_ using the Android client, here's an example:
+
+```
+curl -F "meeting.wav=@/Users/cunnie/Google Drive/BlabberTabber/ICSI-diarizer-sample-meeting.wav" https://test.diarizer.com:9443/api/v1/upload
+```

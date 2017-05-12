@@ -267,4 +267,3 @@ line to `/etc/crontab`
 ```bash
 23 0 *  *  *  * diarizer   find /var/blabbertabber/soundFiles/ -name '*-*-*-*' -type d -mmin +8640 -exec rm -rf {} \;
 ```
-
