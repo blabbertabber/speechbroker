@@ -115,7 +115,6 @@ sudo systemctl restart nginx.service
 
 Download & install `acme-tiny`
 ```
-CN=diarizer.com
 cd ~/workspace
 git clone git@github.com:diafygi/acme-tiny.git
 cd acme-tiny
@@ -127,21 +126,21 @@ CN=diarizer.com
 sudo mkdir -p /etc/pki/nginx/private
 sudo chown -R nginx:nginx /etc/pki/nginx
 sudo chmod 750 /etc/pki/nginx/private
-openssl genrsa 4096 | sudo -u nginx tee /etc/pki/nginx/private/$CN.key
-sudo chmod 440 /etc/pki/nginx/private/$CN.key
+openssl genrsa 4096 | sudo -u nginx tee /etc/pki/nginx/private/server.key
+sudo chmod 440 /etc/pki/nginx/private/server.key
 sudo chown -R nginx:diarizer /etc/pki/nginx/private/
 openssl req \
   -new \
-  -key <(sudo -u nginx cat /etc/pki/nginx/private/$CN.key) \
+  -key <(sudo -u nginx cat /etc/pki/nginx/private/server.key) \
   -sha256 \
   -subj "/C=US/ST=California/L=San Francisco/O=BlabberTabber/OU=/CN=${CN}/emailAddress=brian.cunnie@gmail.com" \
   -reqexts SAN \
   -config <(cat /etc/pki/tls/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:diarizer.com,DNS:home.nono.io,DNS:home.nono.com,DNS:diarizer.com")) \
-  -out $CN.csr
+  -out server.csr
  # prepare empty certificate file with proper permissions
-sudo touch /etc/pki/nginx/$CN.crt
-sudo chown acme_tiny:nginx /etc/pki/nginx/$CN.crt
-sudo chmod 664 /etc/pki/nginx/$CN.crt
+sudo touch /etc/pki/nginx/server.crt
+sudo chown acme_tiny:nginx /etc/pki/nginx/server.crt
+sudo chmod 664 /etc/pki/nginx/server.crt
 ```
 
 Procure the certificate
@@ -149,9 +148,9 @@ Procure the certificate
 sudo -u acme_tiny \
     python acme_tiny.py \
         --account-key /etc/pki/letsencrypt.key \
-        --csr $CN.csr \
+        --csr server.csr \
         --acme-dir /var/blabbertabber/acme-challenge/ \
-        | sudo -u acme_tiny tee /etc/pki/nginx/$CN.crt
+        | sudo -u acme_tiny tee /etc/pki/nginx/server.crt
 ```
 
 Modify `/etc/nginx/nginx.conf` to use https
@@ -210,11 +209,11 @@ Create `/etc/cron.weekly/letsencrypt.sh`
 set -eux
 sudo -u acme_tiny python /usr/local/bin/acme_tiny.py \
     --account-key /etc/pki/letsencrypt.key \
-    --csr /etc/pki/nginx/diarizer.com.csr \
+    --csr /etc/pki/nginx/server.csr \
     --acme-dir /var/blabbertabber/acme-challenge > /tmp/signed.crt || exit
 wget -O- https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem > /tmp/intermediate.pem
 cat /tmp/signed.crt /tmp/intermediate.pem |
-    sudo -u acme_tiny tee /etc/pki/nginx/diarizer.com.crt
+    sudo -u acme_tiny tee /etc/pki/nginx/server.crt
 sudo systemctl restart nginx.service
 ```
 
