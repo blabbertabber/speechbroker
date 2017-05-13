@@ -23,15 +23,14 @@ const SSL_PORT = ":9443"
 
 var soundRootDir = filepath.FromSlash("/var/blabbertabber/soundFiles/")
 var resultsRootDir = filepath.FromSlash("/var/blabbertabber/diarizationResults/")
-var keyPath = filepath.FromSlash("/etc/pki/nginx/private/diarizer.blabbertabber.com.key")
-var certPath = filepath.FromSlash("/etc/pki/nginx/diarizer.blabbertabber.com.crt")
+var keyPath = filepath.FromSlash("/etc/pki/nginx/private/server.key")
+var certPath = filepath.FromSlash("/etc/pki/nginx/server.crt")
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	// NewV1() works via timestamp, which I like. Has mutex to avoid collisions
-	parameters := r.URL.Query()
-	diarizer := parameters["Diarizer"]
-	transcriber := parameters["Transcriber"]
-	fmt.Println("diarizer: ", diarizer, "   Transcriber: ", transcriber)
+	diarizer := r.Header["Diarizer"]
+	transcriber := r.Header["Transcriber"]
+	fmt.Println("Diarizer: ", diarizer, "   Transcriber: ", transcriber)
 
 	conversationUUID := uuid.NewV1()
 	uuid := conversationUUID.String()
