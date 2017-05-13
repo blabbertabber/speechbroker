@@ -28,6 +28,11 @@ var certPath = filepath.FromSlash("/etc/pki/nginx/diarizer.blabbertabber.com.crt
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	// NewV1() works via timestamp, which I like. Has mutex to avoid collisions
+	parameters := r.URL.Query()
+	diarizer := parameters["Diarizer"]
+	transcriber := parameters["Transcriber"]
+	fmt.Println("diarizer: ", diarizer, "   Transcriber: ", transcriber)
+
 	conversationUUID := uuid.NewV1()
 	uuid := conversationUUID.String()
 	soundDir := filepath.Join(soundRootDir, uuid)
