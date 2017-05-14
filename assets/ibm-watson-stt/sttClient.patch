@@ -1,0 +1,18 @@
+--- a/sttClient.py
++++ b/sttClient.py
+@@ -166,11 +166,12 @@ class WSInterfaceProtocol(WebSocketClientProtocol):
+     def onOpen(self):
+         print "onOpen"
+         data = {"action": "start", "content-type": str(self.contentType),
+-                "continuous": True, "interim_results": True,
++                "continuous": False, "interim_results": False,
+                 "inactivity_timeout": 600}
+-        data['word_confidence'] = True
++        data['word_confidence'] = False
+         data['timestamps'] = True
+-        data['max_alternatives'] = 3
++        data['speaker_labels'] = True
++        data['max_alternatives'] = 1
+         print "sendMessage(init)"
+         # send the initialization parameters
+         self.sendMessage(json.dumps(data).encode('utf8'))

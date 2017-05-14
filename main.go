@@ -74,7 +74,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	dst.Close()
 	// return weblink to client "https://diarizer.blabbertabber.com/UUID"
-	justTheHost := strings.Split(r.Host, ":" )[0]
+	justTheHost := strings.Split(r.Host, ":")[0]
 	w.Write([]byte(fmt.Sprintf("https://%s?meeting=%s", justTheHost, uuid)))
 	dst, err = os.Create(filepath.Join(resultsDir, "03_transcription_begun"))
 	if err != nil {

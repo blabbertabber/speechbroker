@@ -12,6 +12,8 @@ FROM fedora
 
 LABEL authors="Brian Cunnie <brian.cunnie@gmail.com>, Brendan Cunnie <saintbrendan@gmail.com>"
 
+CMD ["/bin/bash"]
+
 # required development tools
 RUN dnf groupinstall -y "Development Tools"; \
 	dnf install -y cmake \

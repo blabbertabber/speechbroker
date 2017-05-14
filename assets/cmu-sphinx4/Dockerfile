@@ -1,5 +1,5 @@
-# This is a Dockerfile of CMU Sphinx4
-#
+# This is a Dockerfile of CMU Sphinx 4
+
 # To run:
 #   docker run -it blabbertabber/cmu-sphinx4 bash
 #   java -Xmx2g -cp sphinx4-5prealpha-src/sphinx4-samples/build/libs/sphinx4-samples-5prealpha-SNAPSHOT.jar edu.cmu.sphinx.demo.speakerid.SpeakerIdentificationDemo
@@ -8,6 +8,8 @@
 FROM fedora
 
 LABEL authors="Brian Cunnie <brian.cunnie@gmail.com>, Brendan Cunnie <saintbrendan@gmail.com>"
+
+CMD ["/bin/bash"]
 
 RUN dnf groupinstall -y "Development Tools"; \
     dnf install -y zip file less vim gradle
