@@ -1,3 +1,17 @@
+## Running Tests
+
+Install ginkgo and gomega if you haven't already:
+```bash
+go get github.com/onsi/ginkgo/ginkgo
+go get github.com/onsi/gomega
+```
+
+Reformat & run ginkgo:
+```bash
+gofmt -w .
+ginkgo -r .
+```
+
 ## Developers: How to Update Diarizer Server
 
 ### 1. Updating the Golang-based Diarizer Server
