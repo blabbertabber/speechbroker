@@ -36,6 +36,7 @@ type Speaker struct {
 	Confidence float64 `json:"confidence"`
 	Final      bool    `json:"final"`
 	From       float64 `json:"from"`
+	Speaker    int     `json:"speaker"`
 	To         float64 `json:"to"`
 }
 

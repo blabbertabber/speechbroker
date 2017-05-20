@@ -1,0 +1,30 @@
+{
+  "result_index": 0,
+  "results": [
+    {
+      "alternatives": [
+        {
+          "confidence": 0.694,
+          "timestamps": [
+            [
+              "design swift transaction so you go through when you put all all the things you need to do",
+              2.37,
+              17.54
+            ]
+          ],
+          "transcript": "design swift transaction so you go through when you put all all the things you need to do"
+        }
+      ],
+      "final": true
+    }
+  ],
+  "speaker_labels": [
+    {
+      "confidence": 0.488,
+      "final": false,
+      "from": 2.37,
+      "speaker": 0,
+      "to": 17.54
+    }
+  ]
+}
