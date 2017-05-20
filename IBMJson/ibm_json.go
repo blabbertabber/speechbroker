@@ -4,39 +4,43 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/blabbertabber/DiarizerServer/IBMJson/parseibm"
+	"io/ioutil"
+	"log"
+	"os"
 )
 
-type IBMTranscription struct {
-	ResultIndex   int       `json:"result_index"`
-	Results       []Result  `json:"results"`
-	SpeakerLabels []Speaker `json:"speaker_labels"`
-}
+/*
+    B L A B B E R T A B B E R   D A T A   S T R U C T U R E S
 
-type Result struct {
-	Alternatives []Alternative `json:"alternatives"`
-	Final        bool          `json:"final"`
-}
+    typical JSON-marshaled format:
 
-type Alternative struct {
-	Confidence float64     `json:"confidence"`
-	Timestamps []Timestamp `json:"timestamps"`
-	Transcript string      `json:"transcript"`
+{
+	"speaker_totals": {
+		"0": 34.7,
+		"1": 35
+	},
+	"transcription": [
+		{
+			"speaker": "0",
+			"words": "I love my dog",
+			"from": 2.37,
+			"to": 5.4
+		}
+	]
 }
-
-type Timestamp struct {
-	entry []interface{}
-}
-
-type Speaker struct {
-	Confidence float64 `json:"confidence"`
-	Final      bool    `json:"final"`
-	From       float64 `json:"from"`
-	To         float64 `json:"to"`
-}
+*/
 
 func main() {
-	source := []byte(`"result_index": 0, "results": [], "speaker_labels": []`)
-	var input IBMTranscription
-	json.Unmarshal(source, &input)
-	fmt.Println(input.ResultIndex, input.Results)
+	// source := []byte(`"result_index": 0, "results": [], "speaker_labels": []`)
+	source, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var input parseibm.IBMTranscription // the whole, complete transcription
+	err = json.Unmarshal(source, &input)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(input)
 }

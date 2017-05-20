@@ -1,0 +1,30 @@
+{
+    "result_index": 0,
+    "results": [
+        {
+            "alternatives": [
+                {
+                    "confidence": 0.694,
+                    "timestamps": [
+                        [
+                            "design",
+                            2.37,
+                            3.13
+                        ]
+                    ],
+                    "transcript": "design"
+                }
+            ],
+            "final": true
+        }
+    ],
+    "speaker_labels": [
+        {
+            "confidence": 0.488,
+            "final": false,
+            "from": 2.37,
+            "speaker": 0,
+            "to": 3.13
+        }
+    ]
+}
