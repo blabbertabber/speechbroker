@@ -3,6 +3,7 @@ package emitblabbertabber
 import (
 	"github.com/blabbertabber/DiarizerServer/IBMJson/parseibm"
 	"encoding/json"
+	"strings"
 )
 
 type Transcriptions []Utterance
@@ -23,11 +24,16 @@ func Coerce(transaction parseibm.IBMTranscription) (bytes []byte, err error) {
 	from := transaction.SpeakerLabels[0].From
 	to := transaction.SpeakerLabels[0].To
 	var transcription []string
-	timestamps := transaction.Results[0].Alternatives[0].Timestamps
-	for _, timestamp := range timestamps {
-		transcription = append(transcription, timestamp.Word)
+	results := transaction.Results
+	for _, result := range results {
+		timestamps := result.Alternatives[0].Timestamps
+		for _, timestamp := range timestamps {
+			if timestamp.Word != "%HESITATION" {
+				transcription = append(transcription, timestamp.Word)
+			}
+		}
 	}
-	transcript := transaction.Results[0].Alternatives[0].Transcript
+	transcript := strings.Join(transcription, " ")
 
 	utterance := Utterance{speaker,from, to, transcript}
 
