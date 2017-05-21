@@ -1,13 +1,12 @@
 package emitblabbertabber
 
 import (
-	"github.com/blabbertabber/DiarizerServer/IBMJson/parseibm"
 	"encoding/json"
+	"github.com/blabbertabber/DiarizerServer/IBMJson/parseibm"
 	"strings"
 )
 
 type Transcriptions []Utterance
-
 
 type Utterance struct {
 	Speaker    int
@@ -35,7 +34,7 @@ func Coerce(transaction parseibm.IBMTranscription) (bytes []byte, err error) {
 	}
 	transcript := strings.Join(transcription, " ")
 
-	utterance := Utterance{speaker,from, to, transcript}
+	utterance := Utterance{speaker, from, to, transcript}
 
 	transcriptions := Transcriptions{utterance}
 
