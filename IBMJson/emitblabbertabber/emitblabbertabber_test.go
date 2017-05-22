@@ -81,4 +81,25 @@ var _ = Describe("Emitblabbertabber", func() {
 			Expect(out).To(Equal(expectedJson))
 		})
 	})
+
+	Context("when the IBMTranscription has one result and multiple speaker_labels", func() {
+		It("should coalesce the utterances", func() {
+			source, err := ioutil.ReadFile("../../assets/test/ibm_3.json")
+			Expect(err).To(BeNil())
+			trans := parseibm.IBMTranscription{}
+			err = json.Unmarshal(source, &trans)
+			out, err := Coerce(trans)
+			Expect(err).To(BeNil())
+			expectation := Transcriptions{
+				Utterance{
+					Speaker:    0,
+					From:       2.37,
+					To:         7.2,
+					Transcript: "design swift transaction",
+				},
+			}
+			expectedJson, err := json.Marshal(expectation)
+			Expect(out).To(Equal(expectedJson))
+		})
+	})
 })

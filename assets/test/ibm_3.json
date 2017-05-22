@@ -1,0 +1,78 @@
+{
+  "result_index": 0,
+  "results": [
+    {
+      "alternatives": [
+        {
+          "confidence": 0.694,
+          "timestamps": [
+            [
+              "design",
+              2.37,
+              3.13
+            ],
+            [
+              "%HESITATION",
+              3.54,
+              4.03
+            ],
+            [
+              "%HESITATION",
+              4.09,
+              4.64
+            ],
+            [
+              "swift",
+              4.64,
+              5.48
+            ],
+            [
+              "transaction",
+              5.99,
+              7.2
+            ]
+          ],
+          "transcript": "design %HESITATION %HESITATION swift transaction "
+        }
+      ],
+      "final": true
+    }
+  ],
+  "speaker_labels": [
+    {
+      "confidence": 0.488,
+      "final": false,
+      "from": 2.37,
+      "speaker": 0,
+      "to": 3.13
+    },
+    {
+      "confidence": 0.483,
+      "final": false,
+      "from": 3.54,
+      "speaker": 0,
+      "to": 4.03
+    },
+    {
+      "confidence": 0.639,
+      "final": false,
+      "from": 4.09,
+      "speaker": 0,
+      "to": 4.64
+    },
+    {
+      "confidence": 0.639,
+      "final": false,
+      "from": 4.64,
+      "speaker": 0,
+      "to": 5.48
+    },
+    {
+      "confidence": 0.344,
+      "final": false,
+      "from": 5.99,
+      "speaker": 0,
+      "to": 7.2
+    }
+  ]
+}
