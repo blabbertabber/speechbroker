@@ -1,0 +1,44 @@
+[
+    {
+      "confidence": 0.488,
+      "final": false,
+      "from": 2.37,
+      "speaker": 0,
+      "to": 3.13
+    },
+    {
+      "confidence": 0.483,
+      "final": false,
+      "from": 3.54,
+      "speaker": 0,
+      "to": 4.03
+    },
+    {
+      "confidence": 0.639,
+      "final": false,
+      "from": 4.09,
+      "speaker": 1,
+      "to": 4.64
+    },
+    {
+      "confidence": 0.639,
+      "final": false,
+      "from": 4.64,
+      "speaker": 1,
+      "to": 5.48
+    },
+    {
+      "confidence": 0.344,
+      "final": false,
+      "from": 5.99,
+      "speaker": 0,
+      "to": 7.2
+    },
+    {
+      "confidence": 0.213,
+      "final": false,
+      "from": 9.24,
+      "speaker": 0,
+      "to": 9.55
+    }
+]

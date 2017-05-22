@@ -10,9 +10,9 @@ import (
 */
 
 type IBMTranscription struct {
-	ResultIndex   int       `json:"result_index"`
-	Results       []Result  `json:"results"`
-	SpeakerLabels []Speaker `json:"speaker_labels"`
+	ResultIndex   int            `json:"result_index"`
+	Results       []Result       `json:"results"`
+	SpeakerLabels []SpeakerLabel `json:"speaker_labels"`
 }
 
 type Result struct {
@@ -32,7 +32,7 @@ type Timestamp struct {
 	To   float64
 }
 
-type Speaker struct {
+type SpeakerLabel struct {
 	Confidence float64 `json:"confidence"`
 	Final      bool    `json:"final"`
 	From       float64 `json:"from"`

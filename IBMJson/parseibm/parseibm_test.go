@@ -21,7 +21,7 @@ var _ = Describe("Parseibm", func() {
 	})
 	It("should parse a minimal JSON properly", func() {
 		source := []byte(`{"result_index": 1, "results": [], "speaker_labels": []}`)
-		expectation := IBMTranscription{ResultIndex: 1, Results: []Result{}, SpeakerLabels: []Speaker{}}
+		expectation := IBMTranscription{ResultIndex: 1, Results: []Result{}, SpeakerLabels: []SpeakerLabel{}}
 		result := IBMTranscription{}
 		err := json.Unmarshal(source, &result)
 		Expect(err).To(BeNil())
@@ -44,7 +44,7 @@ var _ = Describe("Parseibm", func() {
 				}},
 				Final: true,
 			}},
-			SpeakerLabels: []Speaker{{
+			SpeakerLabels: []SpeakerLabel{{
 				Confidence: 0.488,
 				Final:      false,
 				From:       2.37,
