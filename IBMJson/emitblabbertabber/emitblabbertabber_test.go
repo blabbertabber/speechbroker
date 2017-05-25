@@ -17,7 +17,7 @@ var _ = Describe("Emitblabbertabber", func() {
 				emptyTrans := parseibm.IBMTranscription{}
 				out, err := Coerce(emptyTrans)
 				Expect(err).To(BeNil())
-				Expect(out).To(Equal([]byte(`{}`)))
+				Expect(out).To(Equal(Transcriptions{}))
 			})
 		})
 		Context("when the IBMTranscription has one result (with one timestamp) and one speaker_label", func() {
@@ -36,8 +36,7 @@ var _ = Describe("Emitblabbertabber", func() {
 						Transcript: "design swift transaction so you go through when you put all all the things you need to do",
 					},
 				}
-				expectedJson, err := json.Marshal(expectation)
-				Expect(out).To(Equal(expectedJson))
+				Expect(out).To(Equal(expectation))
 			})
 		})
 
@@ -57,8 +56,7 @@ var _ = Describe("Emitblabbertabber", func() {
 						Transcript: "design swift transaction sure",
 					},
 				}
-				expectedJson, err := json.Marshal(expectation)
-				Expect(out).To(Equal(expectedJson))
+				Expect(out).To(Equal(expectation))
 			})
 		})
 
@@ -78,8 +76,7 @@ var _ = Describe("Emitblabbertabber", func() {
 						Transcript: "design swift transaction sure",
 					},
 				}
-				expectedJson, err := json.Marshal(expectation)
-				Expect(out).To(Equal(expectedJson))
+				Expect(out).To(Equal(expectation))
 			})
 		})
 
@@ -100,8 +97,7 @@ var _ = Describe("Emitblabbertabber", func() {
 						Transcript: "design swift transaction",
 					},
 				}
-				expectedJson, err := json.Marshal(expectation)
-				Expect(out).To(Equal(expectedJson))
+				Expect(out).To(Equal(expectation))
 			})
 		})
 

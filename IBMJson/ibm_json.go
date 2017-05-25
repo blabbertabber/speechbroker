@@ -22,9 +22,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	btJSON, err := emitblabbertabber.Coerce(input)
+	transcriptions, err := emitblabbertabber.Coerce(input)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(string(btJSON))
+	bytes, err := json.Marshal(transcriptions)
+
+	fmt.Println(string(bytes))
 }

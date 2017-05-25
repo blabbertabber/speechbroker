@@ -1,7 +1,6 @@
 package emitblabbertabber
 
 import (
-	"encoding/json"
 	"github.com/blabbertabber/DiarizerServer/IBMJson/parseibm"
 	"log"
 	"math"
@@ -17,12 +16,14 @@ type Utterance struct {
 	Transcript string
 }
 
-func Coerce(transaction parseibm.IBMTranscription) (bytes []byte, err error) {
+func Coerce(transaction parseibm.IBMTranscription) (utterances Transcriptions, err error) {
 	transaction.SpeakerLabels, err = SquashSpeakerLabels(transaction.SpeakerLabels)
-	log.Fatal("I was unable to squash the speakers!")
+	if err != nil {
+		log.Fatal("I was unable to squash the speakers!")
+	}
 
 	if transaction.Results == nil {
-		return []byte(`{}`), nil
+		return Transcriptions{}, nil
 	}
 	speaker := transaction.SpeakerLabels[0].Speaker
 	from := transaction.SpeakerLabels[0].From
@@ -41,11 +42,7 @@ func Coerce(transaction parseibm.IBMTranscription) (bytes []byte, err error) {
 
 	utterance := Utterance{speaker, from, to, transcript}
 
-	transcriptions := Transcriptions{utterance}
-
-	bytes, err = json.Marshal(transcriptions)
-
-	return bytes, err
+	return Transcriptions{utterance}, err
 }
 
 func SquashSpeakerLabels(speakerLabels []parseibm.SpeakerLabel) ([]parseibm.SpeakerLabel, error) {
