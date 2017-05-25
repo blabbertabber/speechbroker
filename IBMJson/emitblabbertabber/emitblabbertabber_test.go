@@ -101,6 +101,39 @@ var _ = Describe("Emitblabbertabber", func() {
 			})
 		})
 
+		Context("when the IBMTranscription has multiple results and multiple speaker_labels", func() {
+			It("should coalesce the utterances", func() {
+				source, err := ioutil.ReadFile("../../assets/test/ibm_4.json")
+				Expect(err).To(BeNil())
+				trans := parseibm.IBMTranscription{}
+				err = json.Unmarshal(source, &trans)
+				Expect(err).To(BeNil())
+				out, err := Coerce(trans)
+				Expect(err).To(BeNil())
+				expectation := Transcriptions{
+					Utterance{
+						Speaker:    0,
+						From:       2.37,
+						To:         4.03,
+						Transcript: "design",
+					},
+					Utterance{
+						Speaker:    1,
+						From:       4.09,
+						To:         5.48,
+						Transcript: "swift",
+					},
+					Utterance{
+						Speaker:    0,
+						From:       5.99,
+						To:         7.2,
+						Transcript: "transaction",
+					},
+				}
+				Expect(out).To(Equal(expectation))
+			})
+		})
+
 	})
 	Context("#SquashSpeakerLabels", func() {
 		Context("when there are adjacent speaker_labels belonging to the same speaker", func() {

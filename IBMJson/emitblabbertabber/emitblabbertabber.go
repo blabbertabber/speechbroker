@@ -25,24 +25,28 @@ func Coerce(transaction parseibm.IBMTranscription) (utterances Transcriptions, e
 	if transaction.Results == nil {
 		return Transcriptions{}, nil
 	}
-	speaker := transaction.SpeakerLabels[0].Speaker
-	from := transaction.SpeakerLabels[0].From
-	to := transaction.SpeakerLabels[0].To
-	var transcription []string
-	results := transaction.Results
-	for _, result := range results {
-		timestamps := result.Alternatives[0].Timestamps
-		for _, timestamp := range timestamps {
-			if timestamp.Word != "%HESITATION" {
-				transcription = append(transcription, timestamp.Word)
+	for _, speakerLabel := range transaction.SpeakerLabels {
+		speaker := speakerLabel.Speaker
+		from := speakerLabel.From
+		to := speakerLabel.To
+		var transcription []string
+		results := transaction.Results
+		for _, result := range results {
+			timestamps := result.Alternatives[0].Timestamps
+			for _, timestamp := range timestamps {
+				if (timestamp.From >= speakerLabel.From) && (timestamp.To <= speakerLabel.To) {
+					if timestamp.Word != "%HESITATION" {
+						transcription = append(transcription, timestamp.Word)
+					}
+				}
 			}
 		}
+		transcript := strings.Join(transcription, " ")
+
+		utterances = append(utterances, Utterance{speaker, from, to, transcript})
 	}
-	transcript := strings.Join(transcription, " ")
 
-	utterance := Utterance{speaker, from, to, transcript}
-
-	return Transcriptions{utterance}, err
+	return utterances, err
 }
 
 func SquashSpeakerLabels(speakerLabels []parseibm.SpeakerLabel) ([]parseibm.SpeakerLabel, error) {
