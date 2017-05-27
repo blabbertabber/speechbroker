@@ -213,6 +213,35 @@ var _ = Describe("Emitblabbertabber", func() {
 				Expect(out).To(Equal(expectation))
 			})
 		})
+		Context("when there are many utterances and multiple speakers", func() {
+			It("should return a correct Summary", func() {
+				source, err := ioutil.ReadFile("../../assets/test/ibm_4.json")
+				Expect(err).To(BeNil())
+				trans := parseibm.IBMTranscription{}
+				err = json.Unmarshal(source, &trans)
+				utterances, err := Coerce(trans)
+				Expect(err).To(BeNil())
+				out, err := CalcSummary(utterances)
+				expectation := Summary{
+					TotalSpeakingTime: 4.26,
+					LeaderBoard: []SpeakerStat{
+						{Speaker: "0", TotalTime: 2.87},
+						{Speaker: "1", TotalTime: 1.39},
+					},
+					Utterances: []Utterance{
+						{Speaker: 0, From: 2.37, To: 4.03, Transcript: "design"},
+						{Speaker: 1, From: 4.09, To: 5.48, Transcript: "swift"},
+						{
+							Speaker:    0,
+							From:       5.99,
+							To:         7.2,
+							Transcript: "transaction",
+						},
+					},
+				}
+				Expect(out).To(Equal(expectation))
+			})
+		})
 
 	})
 })
