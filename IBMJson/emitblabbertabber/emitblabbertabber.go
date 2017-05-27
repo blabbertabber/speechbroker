@@ -1,6 +1,7 @@
 package emitblabbertabber
 
 import (
+	"fmt"
 	"github.com/blabbertabber/DiarizerServer/IBMJson/parseibm"
 	"log"
 	"math"
@@ -25,8 +26,27 @@ type Utterance struct {
 	Transcript string  `json:"transcript"`
 }
 
-func CalcTotals(utterances []Utterance) (Summary, error) {
-	return Summary{}, nil
+func CalcSummary(utterances []Utterance) (summary Summary, err error) {
+	//summary = Summary{}
+	var totalSpeakingTime float64 = 0.0
+	speakerStatMap := make(map[int]float64)
+	leaderBoard := []SpeakerStat{}
+	for _, utterance := range utterances {
+		elapsedTime := utterance.To - utterance.From
+		elapsedTime = math.Floor(elapsedTime*100+.5) / 100
+		totalSpeakingTime += elapsedTime
+		speakerStatMap[utterance.Speaker] += elapsedTime
+	}
+	for key, value := range speakerStatMap {
+		leaderBoard = append(leaderBoard, SpeakerStat{
+			Speaker:   fmt.Sprintf("%d", key),
+			TotalTime: value,
+		})
+	}
+	summary.LeaderBoard = leaderBoard
+	summary.TotalSpeakingTime = totalSpeakingTime
+	summary.Utterances = utterances
+	return summary, nil
 }
 
 func Coerce(transaction parseibm.IBMTranscription) (utterances []Utterance, err error) {

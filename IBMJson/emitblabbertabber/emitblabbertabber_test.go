@@ -172,14 +172,47 @@ var _ = Describe("Emitblabbertabber", func() {
 			})
 		})
 	})
-	Context("#CalcTotals", func() {
+	Context("#CalcSummary", func() {
 		Context("when there are no utterances", func() {
 			It("returns an empty Summary object", func() {
-				expectation := Summary{}
-				out, err := CalcTotals([]Utterance{})
+				expectation := Summary{
+					LeaderBoard: []SpeakerStat{},
+					Utterances:  []Utterance{},
+				}
+				out, err := CalcSummary([]Utterance{})
 				Expect(err).To(BeNil())
 				Expect(out).To(Equal(expectation))
 			})
 		})
+		Context("when there is one utterance", func() {
+			It("should return a correct Summary with one Utterance", func() {
+				source, err := ioutil.ReadFile("../../assets/test/ibm_1.json")
+				Expect(err).To(BeNil())
+				trans := parseibm.IBMTranscription{}
+				err = json.Unmarshal(source, &trans)
+				utterances, err := Coerce(trans)
+				Expect(err).To(BeNil())
+				out, err := CalcSummary(utterances)
+				expectation := Summary{
+					TotalSpeakingTime: 15.17,
+					LeaderBoard: []SpeakerStat{
+						{
+							Speaker:   "0",
+							TotalTime: 15.17,
+						},
+					},
+					Utterances: []Utterance{
+						{
+							Speaker:    0,
+							From:       2.37,
+							To:         17.54,
+							Transcript: "design swift transaction so you go through when you put all all the things you need to do",
+						},
+					},
+				}
+				Expect(out).To(Equal(expectation))
+			})
+		})
+
 	})
 })
