@@ -28,7 +28,7 @@ var _ = Describe("Parseibm", func() {
 		Expect(result).To(Equal(expectation))
 	})
 	It("should parse a full JSON properly", func() {
-		source, err := ioutil.ReadFile("../../assets/test/ibm.json")
+		source, err := ioutil.ReadFile("../../assets/test/ibm_0.json")
 		Expect(err).To(BeNil())
 		expectation := IBMTranscription{
 			ResultIndex: 0,
