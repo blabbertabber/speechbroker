@@ -17,7 +17,7 @@ var _ = Describe("Emitblabbertabber", func() {
 				emptyTrans := parseibm.IBMTranscription{}
 				out, err := Coerce(emptyTrans)
 				Expect(err).To(BeNil())
-				Expect(out).To(Equal(Transcriptions{}))
+				Expect(out).To(Equal([]Utterance{}))
 			})
 		})
 		Context("when the IBMTranscription has one result (with one timestamp) and one speaker_label", func() {
@@ -28,7 +28,7 @@ var _ = Describe("Emitblabbertabber", func() {
 				err = json.Unmarshal(source, &trans)
 				out, err := Coerce(trans)
 				Expect(err).To(BeNil())
-				expectation := Transcriptions{
+				expectation := []Utterance{
 					Utterance{
 						Speaker:    0,
 						From:       2.37,
@@ -48,7 +48,7 @@ var _ = Describe("Emitblabbertabber", func() {
 				err = json.Unmarshal(source, &trans)
 				out, err := Coerce(trans)
 				Expect(err).To(BeNil())
-				expectation := Transcriptions{
+				expectation := []Utterance{
 					Utterance{
 						Speaker:    0,
 						From:       2.37,
@@ -68,7 +68,7 @@ var _ = Describe("Emitblabbertabber", func() {
 				err = json.Unmarshal(source, &trans)
 				out, err := Coerce(trans)
 				Expect(err).To(BeNil())
-				expectation := Transcriptions{
+				expectation := []Utterance{
 					Utterance{
 						Speaker:    0,
 						From:       2.37,
@@ -89,7 +89,7 @@ var _ = Describe("Emitblabbertabber", func() {
 				Expect(err).To(BeNil())
 				out, err := Coerce(trans)
 				Expect(err).To(BeNil())
-				expectation := Transcriptions{
+				expectation := []Utterance{
 					Utterance{
 						Speaker:    0,
 						From:       2.37,
@@ -110,7 +110,7 @@ var _ = Describe("Emitblabbertabber", func() {
 				Expect(err).To(BeNil())
 				out, err := Coerce(trans)
 				Expect(err).To(BeNil())
-				expectation := Transcriptions{
+				expectation := []Utterance{
 					Utterance{
 						Speaker:    0,
 						From:       2.37,
@@ -167,6 +167,16 @@ var _ = Describe("Emitblabbertabber", func() {
 					},
 				}
 				out, err := SquashSpeakerLabels(sls)
+				Expect(err).To(BeNil())
+				Expect(out).To(Equal(expectation))
+			})
+		})
+	})
+	Context("#CalcTotals", func() {
+		Context("when there are no utterances", func() {
+			It("returns an empty Summary object", func() {
+				expectation := Summary{}
+				out, err := CalcTotals([]Utterance{})
 				Expect(err).To(BeNil())
 				Expect(out).To(Equal(expectation))
 			})

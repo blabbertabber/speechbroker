@@ -7,23 +7,36 @@ import (
 	"strings"
 )
 
-type Transcriptions []Utterance
-
-type Utterance struct {
-	Speaker    int
-	From       float64
-	To         float64
-	Transcript string
+type Summary struct {
+	TotalSpeakingTime float64       `json:"total_speaking_time"`
+	LeaderBoard       []SpeakerStat `json:"leader_board"`
+	Utterances        []Utterance   `json:"utterances"`
 }
 
-func Coerce(transaction parseibm.IBMTranscription) (utterances Transcriptions, err error) {
+type SpeakerStat struct {
+	Speaker   string  `json:"speaker"`
+	TotalTime float64 `json:"total_time"`
+}
+
+type Utterance struct {
+	Speaker    int     `json:"speaker"`
+	From       float64 `json:"from"`
+	To         float64 `json:"to"`
+	Transcript string  `json:"transcript"`
+}
+
+func CalcTotals(utterances []Utterance) (Summary, error) {
+	return Summary{}, nil
+}
+
+func Coerce(transaction parseibm.IBMTranscription) (utterances []Utterance, err error) {
 	transaction.SpeakerLabels, err = SquashSpeakerLabels(transaction.SpeakerLabels)
 	if err != nil {
 		log.Fatal("I was unable to squash the speakers!")
 	}
 
 	if transaction.Results == nil {
-		return Transcriptions{}, nil
+		return []Utterance{}, nil
 	}
 	for _, speakerLabel := range transaction.SpeakerLabels {
 		speaker := speakerLabel.Speaker
