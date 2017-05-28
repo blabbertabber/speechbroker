@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"io/ioutil"
+	"sort"
 )
 
 var _ = Describe("Emitblabbertabber", func() {
@@ -243,5 +244,31 @@ var _ = Describe("Emitblabbertabber", func() {
 			})
 		})
 
+	})
+	Context("sort.Sort(SpeakerStats)", func() {
+		Context("When given a slew of speakers", func() {
+			It("should sort them in ascending order by TotalTime", func() {
+				expectation := SpeakerStats{
+					{Speaker: "6", TotalTime: 0.0},
+					{Speaker: "5", TotalTime: 1.0},
+					{Speaker: "4", TotalTime: 2.0},
+					{Speaker: "3", TotalTime: 3.0},
+					{Speaker: "2", TotalTime: 4.0},
+					{Speaker: "1", TotalTime: 5.0},
+					{Speaker: "0", TotalTime: 6.0},
+				}
+				out := SpeakerStats{
+					{Speaker: "1", TotalTime: 5},
+					{Speaker: "5", TotalTime: 1},
+					{Speaker: "6", TotalTime: 0},
+					{Speaker: "2", TotalTime: 4},
+					{Speaker: "3", TotalTime: 3},
+					{Speaker: "4", TotalTime: 2},
+					{Speaker: "0", TotalTime: 6},
+				}
+				sort.Sort(SpeakerStats(out))
+				Expect(out).To(Equal(expectation))
+			})
+		})
 	})
 })
