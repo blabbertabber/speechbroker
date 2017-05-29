@@ -12,7 +12,7 @@ gofmt -w .
 ginkgo -r .
 ```
 
-## Developers: How to Update Diarizer Server
+## How to Update Diarizer Server
 
 ### 1. Updating the Golang-based Diarizer Server
 
@@ -32,7 +32,8 @@ sudo cp DiarizerServer /usr/local/bin/
 sudo systemctl start diarizer.service
 ```
 
-Then install and test on the production server (only change from above is first line, where we ssh into the server)
+Then install and test on the production server (identical instructions as the test server's, with the exception of
+the first line, where we ssh into the server):
 
 ```bash
 ssh -i /c/Users/saint/.ssh/id_github saintbrendan@diarizer.com
@@ -49,10 +50,20 @@ sudo systemctl start diarizer.service
 
 ### 2. Updating the HTML/CSS/JS
 
-First, test. Webstorm should be configured to point to the test server by default, so you it should automatically
-publish.
+First, test. Webstorm should be configured to point to the test server by default, so your changes should be
+automatically, instantaneously, published there.
 
-Here's a good url to test: <https://test.diarizer.com/?m=test>
+Here are several good urls to test (8, 10, 12, 16 speaker colors, respectively):
+
+* <https://test.diarizer.com/?m=test>
+* <https://test.diarizer.com/?m=test-10>
+* <https://test.diarizer.com/?m=test-12>
+* <https://test.diarizer.com/?m=test-16>
+
+Also, to view the _raw files_ within a directory, remove the `?m=` from the URL (or the `?meeting=`),
+e.g.:
+
+* <https://test.diarizer.com/test>
 
 When everything works, you can publish to production:
 in Webstorm: **Tools &rarr; Deployment &rarr; Upload to ... &rarr; diarizer.com**
