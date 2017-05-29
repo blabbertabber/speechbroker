@@ -5,6 +5,7 @@ import (
 	"github.com/blabbertabber/DiarizerServer/IBMJson/parseibm"
 	"log"
 	"math"
+	"sort"
 	"strings"
 )
 
@@ -43,6 +44,7 @@ func CalcSummary(utterances []Utterance) (summary Summary, err error) {
 			TotalTime: value,
 		})
 	}
+	sort.Sort(sort.Reverse(SpeakerStats(leaderBoard)))
 	summary.LeaderBoard = leaderBoard
 	summary.TotalSpeakingTime = totalSpeakingTime
 	summary.Utterances = utterances
@@ -100,4 +102,18 @@ func SquashSpeakerLabels(speakerLabels []parseibm.SpeakerLabel) ([]parseibm.Spea
 		}
 	}
 	return squashed, nil
+}
+
+type SpeakerStats []SpeakerStat
+
+func (s SpeakerStats) Len() int {
+	return len(s)
+}
+
+func (s SpeakerStats) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s SpeakerStats) Less(i, j int) bool {
+	return s[i].TotalTime < s[j].TotalTime
 }
