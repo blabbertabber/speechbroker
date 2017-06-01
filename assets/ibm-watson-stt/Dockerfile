@@ -1,10 +1,10 @@
-# This is a Dockerfile of IBM 4 + customized BlabberTabber java front-end
-
-# The front-end invokes CMU Sphinx 4's transcription features
-# It depends on the generic CMU Sphinx 4 Docker image
+# This is a Dockerfile of IBM 4 + custom patched file
+#  - only 1 alternative (i.e. no alternatives, just one version)
+#  - enable diarization
+#  - don't worry about continuous (streaming)/interim results
 
 # To run:
-#   docker run -it blabbertabber/cmu-sphinx4-transcriber bash
+#   docker run -it blabbertabber/ibm-watson-stt bash
 
 FROM fedora
 
