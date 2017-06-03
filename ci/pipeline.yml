@@ -1,0 +1,31 @@
+# fly -t nono sp -c pipeline.yml -p BlabberTabber
+# fly -t nono unpause-pipeline -p BlabberTabber
+# fly -t nono expose-pipeline -p BlabberTabber
+---
+groups:
+- name: BlabberTabber
+  jobs:
+  - unit
+
+jobs:
+- name: unit
+  plan:
+  - get: src
+    trigger: true
+  - task: unit-tests
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: blabbertabber/golang-ginko
+      inputs:
+      - name: src
+      run:
+        path: src/ci/tasks/test-unit.sh
+
+resources:
+- name: src
+  type: git
+  source:
+    uri: https://github.com/blabbertabber/DiarizerServer

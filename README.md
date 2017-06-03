@@ -1,3 +1,5 @@
+[![DiarizerServer](https://ci.nono.io/api/v1/pipelines/BlabberTabber/jobs/unit/badge)](https://ci.nono.io/?groups=BlabberTabber)
+
 # DiarizerServer
 
 An HTTPS server which allows you to POST files and in turn diarizes them.
