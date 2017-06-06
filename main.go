@@ -7,7 +7,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"io"
 	"io/ioutil"
 	"log"
@@ -27,19 +27,18 @@ var keyPath = filepath.FromSlash("/etc/pki/nginx/private/server.key")
 var certPath = filepath.FromSlash("/etc/pki/nginx/server.crt")
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	// NewV1() works via timestamp, which I like. Has mutex to avoid collisions
 	diarizer := r.Header["Diarizer"]
 	transcriber := r.Header["Transcriber"]
 	fmt.Println("Diarizer: ", diarizer, "   Transcriber: ", transcriber)
 
-	conversationUUID := uuid.NewV1()
-	uuid := conversationUUID.String()
-	soundDir := filepath.Join(soundRootDir, uuid)
+	conversationUUID := uuid.New()
+	meetingUuid := conversationUUID.String()
+	soundDir := filepath.Join(soundRootDir, meetingUuid)
 	err := os.MkdirAll(soundDir, 0777)
 	if err != nil {
 		log.Fatal("MkdirAll: ", err)
 	}
-	resultsDir := filepath.Join(resultsRootDir, uuid)
+	resultsDir := filepath.Join(resultsRootDir, meetingUuid)
 	err = os.MkdirAll(resultsDir, 0777)
 	if err != nil {
 		log.Fatal("MkdirAll: ", err)
@@ -75,14 +74,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	dst.Close()
 	// return weblink to client "https://diarizer.blabbertabber.com/UUID"
 	justTheHost := strings.Split(r.Host, ":")[0]
-	w.Write([]byte(fmt.Sprintf("https://%s?meeting=%s", justTheHost, uuid)))
+	w.Write([]byte(fmt.Sprintf("https://%s?meeting=%s", justTheHost, meetingUuid)))
 	dst, err = os.Create(filepath.Join(resultsDir, "03_transcription_begun"))
 	if err != nil {
 		log.Fatal("Create: ", err)
 	}
 	dst.Close()
-	meetingWavFilepath := fmt.Sprintf("/blabbertabber/soundFiles/%s/meeting.wav", uuid)
-	diarizationFilepath := fmt.Sprintf("/blabbertabber/diarizationResults/%s/diarization.txt", uuid)
+	meetingWavFilepath := fmt.Sprintf("/blabbertabber/soundFiles/%s/meeting.wav", meetingUuid)
+	diarizationFilepath := fmt.Sprintf("/blabbertabber/diarizationResults/%s/diarization.txt", meetingUuid)
 	diarizationCommand := []string{
 		"run",
 		"--volume=/var/blabbertabber:/blabbertabber",
@@ -93,7 +92,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		"-o",
 		diarizationFilepath,
 	}
-	transcriptionFilepath := fmt.Sprintf("/blabbertabber/diarizationResults/%s/transcription.txt", uuid)
+	transcriptionFilepath := fmt.Sprintf("/blabbertabber/diarizationResults/%s/transcription.txt", meetingUuid)
 	transcriptionCommand := []string{
 		"run",
 		"--volume=/var/blabbertabber:/blabbertabber",
