@@ -21,14 +21,14 @@ First, test it on the test server:
 
 ```bash
 ssh -i /c/Users/saint/.ssh/id_github saintbrendan@test.diarizer.com
-cd $GOPATH/src/github.com/blabbertabber/DiarizerServer
+cd $GOPATH/src/github.com/blabbertabber/speechbroker
 git pull -r
 go build
 sudo systemctl stop diarizer.service
-sudo -u diarizer ./DiarizerServer
+sudo -u diarizer ./speechbroker
  # run BlabberTabber, upload file, check output -- .txt files there?
  # if not, debug and repeat
-sudo cp DiarizerServer /usr/local/bin/
+sudo cp speechbroker /usr/local/bin/
 sudo systemctl start diarizer.service
 ```
 
@@ -37,14 +37,14 @@ the first line, where we ssh into the server):
 
 ```bash
 ssh -i /c/Users/saint/.ssh/id_github saintbrendan@diarizer.com
-cd $GOPATH/src/github.com/blabbertabber/DiarizerServer
+cd $GOPATH/src/github.com/blabbertabber/speechbroker
 git pull -r
 go build
 sudo systemctl stop diarizer.service
-sudo -u diarizer ./DiarizerServer
+sudo -u diarizer ./speechbroker
  # run BlabberTabber, upload file, check output -- .txt files there?
  # if not, debug and repeat
-sudo cp DiarizerServer /usr/local/bin/
+sudo cp speechbroker /usr/local/bin/
 sudo systemctl start diarizer.service
 ```
 

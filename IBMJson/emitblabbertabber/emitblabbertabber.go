@@ -2,7 +2,7 @@ package emitblabbertabber
 
 import (
 	"fmt"
-	"github.com/blabbertabber/DiarizerServer/IBMJson/parseibm"
+	"github.com/blabbertabber/speechbroker/IBMJson/parseibm"
 	"log"
 	"math"
 	"sort"

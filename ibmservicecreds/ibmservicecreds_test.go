@@ -1,7 +1,7 @@
 package ibmservicecreds_test
 
 import (
-	. "github.com/blabbertabber/DiarizerServer/ibmservicecreds"
+	. "github.com/blabbertabber/speechbroker/ibmservicecreds"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

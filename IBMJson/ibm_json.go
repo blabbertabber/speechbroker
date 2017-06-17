@@ -4,8 +4,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/blabbertabber/DiarizerServer/IBMJson/emitblabbertabber"
-	"github.com/blabbertabber/DiarizerServer/IBMJson/parseibm"
+	"github.com/blabbertabber/speechbroker/IBMJson/emitblabbertabber"
+	"github.com/blabbertabber/speechbroker/IBMJson/parseibm"
 	"io/ioutil"
 	"log"
 	"os"

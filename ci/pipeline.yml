@@ -28,4 +28,4 @@ resources:
 - name: src
   type: git
   source:
-    uri: https://github.com/blabbertabber/DiarizerServer
+    uri: https://github.com/blabbertabber/speechbroker
