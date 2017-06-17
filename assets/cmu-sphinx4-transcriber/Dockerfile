@@ -12,6 +12,6 @@ LABEL authors="Brian Cunnie <brian.cunnie@gmail.com>, Brendan Cunnie <saintbrend
 
 CMD ["/bin/bash"]
 
-RUN curl -OL "https://raw.githubusercontent.com/blabbertabber/DiarizerServer/master/assets/cmu-sphinx4-transcriber/Transcriber.java"
+RUN curl -OL "https://raw.githubusercontent.com/blabbertabber/speechbroker/master/assets/cmu-sphinx4-transcriber/Transcriber.java"
 
 RUN javac Transcriber.java -cp /sphinx4-5prealpha-src/sphinx4-core/build/libs/sphinx4-core-5prealpha-SNAPSHOT.jar

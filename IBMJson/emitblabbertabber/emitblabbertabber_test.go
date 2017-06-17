@@ -1,10 +1,10 @@
 package emitblabbertabber_test
 
 import (
-	. "github.com/blabbertabber/DiarizerServer/IBMJson/emitblabbertabber"
+	. "github.com/blabbertabber/speechbroker/IBMJson/emitblabbertabber"
 
 	"encoding/json"
-	"github.com/blabbertabber/DiarizerServer/IBMJson/parseibm"
+	"github.com/blabbertabber/speechbroker/IBMJson/parseibm"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"io/ioutil"

@@ -7,7 +7,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/blabbertabber/DiarizerServer/httphandler"
+	"github.com/blabbertabber/speechbroker/httphandler"
 	"log"
 	"net/http"
 	"path/filepath"

@@ -4,7 +4,7 @@
 * currently maps to home.nono.io (73.15.134.22 and 2601:646:100:e8e8::101)
 * tcp4/22,80,443,9443 is forwarded appropriately
 * tcp6/22,80,443,9443 is allowed
-* DiarizerServer listens on 9443
+* speechbroker listens on 9443
 * nginx listens on 443
 
 ### URLS:
@@ -205,7 +205,7 @@ sudo cp ~/workspace/acme-tiny/acme_tiny.py /usr/local/bin/
 
 Copy cronjob into place to keep SSL certificates fresh:
 ```
-sudo cp $GOPATH/src/github.com/blabbertabber/DiarizerServer/assets/cron.weekly.sh \
+sudo cp $GOPATH/src/github.com/blabbertabber/speechbroker/assets/cron.weekly.sh \
   /etc/cron.weekly/letsencrypt.sh
 ```
 
@@ -252,11 +252,11 @@ sudo -u diarizer \
 
 Install service
 ```
-sudo cp DiarizerServer /usr/local/bin/
-sudo chown diarizer:diarizer /usr/local/bin/DiarizerServer
+sudo cp speechbroker /usr/local/bin/
+sudo chown diarizer:diarizer /usr/local/bin/speechbroker
  # the following is bad; should have other ways to set uid
-sudo chown diarizer:diarizer /usr/local/bin/DiarizerServer
-sudo chmod 6755 /usr/local/bin/DiarizerServer
+sudo chown diarizer:diarizer /usr/local/bin/speechbroker
+sudo chmod 6755 /usr/local/bin/speechbroker
 sudo cp assets/diarizer.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now diarizer.service

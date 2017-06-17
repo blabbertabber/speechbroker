@@ -28,5 +28,8 @@ _testmain.go
 *.iml
 
 # Executables
-DiarizerServer
+speechbroker
 main
+.idea/
+DiarizerServer/
+assets/.idea/

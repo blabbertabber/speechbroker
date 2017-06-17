@@ -1,7 +1,7 @@
 package parseibm_test
 
 import (
-	. "github.com/blabbertabber/DiarizerServer/IBMJson/parseibm"
+	. "github.com/blabbertabber/speechbroker/IBMJson/parseibm"
 
 	"encoding/json"
 	. "github.com/onsi/ginkgo"
