@@ -13,32 +13,67 @@ import (
 	"strings"
 )
 
-type HttpHandler struct {
-	Handler func(http.ResponseWriter, *http.Request)
+type Uuid interface {
+	GetUuid() string
 }
 
-func New() HttpHandler {
-	return HttpHandler{
-		Handler: handler,
+type UuidReal struct{}
+
+func (u UuidReal) GetUuid() string {
+	return uuid.New().String()
+}
+
+type DockerRunner interface {
+	Run(action string, resultsDir string, dockerCommandArgs ...string)
+}
+
+type DockerRunnerReal struct{}
+
+func (d DockerRunnerReal) Run(action string, resultsDir string, dockerCommandArgs ...string) {
+	dst, err := os.Create(filepath.Join(resultsDir, action+"_begun"))
+	log.Print(strings.Join(dockerCommandArgs, " "+"\n"))
+	if err != nil {
+		log.Fatal("Create: ", err)
 	}
+	dst.Close()
+	command := exec.Command("docker", dockerCommandArgs...)
+	stderr, err := command.StderrPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := command.Start(); err != nil {
+		log.Fatal(err)
+	}
+
+	slurp, _ := ioutil.ReadAll(stderr)
+	log.Printf("%s\n", slurp)
+
+	if err := command.Wait(); err != nil {
+		log.Fatal(err)
+	}
+	dst, err = os.Create(filepath.Join(resultsDir, action+"_ended"))
 }
 
-var soundRootDir = filepath.FromSlash("/var/blabbertabber/soundFiles/")
-var resultsRootDir = filepath.FromSlash("/var/blabbertabber/diarizationResults/")
+type HttpHandler struct {
+	Uuid           Uuid
+	DockerRunner   DockerRunner
+	SoundRootDir   string
+	ResultsRootDir string
+}
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func (h HttpHandler) Handler(w http.ResponseWriter, r *http.Request) {
 	diarizer := r.Header["Diarizer"]
 	transcriber := r.Header["Transcriber"]
 	fmt.Println("Diarizer: ", diarizer, "   Transcriber: ", transcriber)
 
-	conversationUUID := uuid.New()
-	meetingUuid := conversationUUID.String()
-	soundDir := filepath.Join(soundRootDir, meetingUuid)
+	meetingUuid := h.Uuid.GetUuid()
+	soundDir := filepath.Join(h.SoundRootDir, meetingUuid)
 	err := os.MkdirAll(soundDir, 0777)
 	if err != nil {
 		log.Fatal("MkdirAll: ", err)
 	}
-	resultsDir := filepath.Join(resultsRootDir, meetingUuid)
+	resultsDir := filepath.Join(h.ResultsRootDir, meetingUuid)
 	err = os.MkdirAll(resultsDir, 0777)
 	if err != nil {
 		log.Fatal("MkdirAll: ", err)
@@ -105,32 +140,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		meetingWavFilepath,
 		transcriptionFilepath,
 	}
-	go diarizeOrTranscribe("diarization", resultsDir, diarizationCommand...)
-	go diarizeOrTranscribe("transcription", resultsDir, transcriptionCommand...)
-}
-
-func diarizeOrTranscribe(action string, resultsDir string, dockerCommandArgs ...string) {
-	dst, err := os.Create(filepath.Join(resultsDir, action+"_begun"))
-	log.Print(strings.Join(dockerCommandArgs, " "+"\n"))
-	if err != nil {
-		log.Fatal("Create: ", err)
-	}
-	dst.Close()
-	command := exec.Command("docker", dockerCommandArgs...)
-	stderr, err := command.StderrPipe()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := command.Start(); err != nil {
-		log.Fatal(err)
-	}
-
-	slurp, _ := ioutil.ReadAll(stderr)
-	log.Printf("%s\n", slurp)
-
-	if err := command.Wait(); err != nil {
-		log.Fatal(err)
-	}
-	dst, err = os.Create(filepath.Join(resultsDir, action+"_ended"))
+	go h.DockerRunner.Run("diarization", resultsDir, diarizationCommand...)
+	go h.DockerRunner.Run("transcription", resultsDir, transcriptionCommand...)
 }
