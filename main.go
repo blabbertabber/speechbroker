@@ -20,7 +20,13 @@ var keyPath = filepath.FromSlash("/etc/pki/nginx/private/server.key")
 var certPath = filepath.FromSlash("/etc/pki/nginx/server.crt")
 
 func main() {
-	http.HandleFunc("/api/v1/upload", httphandler.New().Handler)
+	h := httphandler.HttpHandler{
+		Uuid:           httphandler.UuidReal{},
+		DockerRunner:   httphandler.DockerRunnerReal{},
+		SoundRootDir:   filepath.FromSlash("/var/blabbertabber/soundFiles/"),
+		ResultsRootDir: filepath.FromSlash("/var/blabbertabber/diarizationResults/"),
+	}
+	http.HandleFunc("/api/v1/upload", h.Handler)
 
 	go func() {
 		log.Fatal(http.ListenAndServe(CLEAR_PORT, nil))
