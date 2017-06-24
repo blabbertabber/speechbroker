@@ -11,6 +11,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
+	"time"
 )
 
 // `counterfeiter httphandler/httphandler.go Uuid`
@@ -89,9 +91,8 @@ type Handler struct {
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// `diarizer` and `transcriber` _must_ match what the Android client sends
 	// e.g.  https://github.com/blabbertabber/blabbertabber/blob/fea98684ad500380ef347cff584821ee52098c1e/app/src/main/java/com/blabbertabber/blabbertabber/RecordingActivity.java#L386-L392
-	diarizer := r.Header["Diarizer"]       // "IBM" or "Aalto"
-	transcriber := r.Header["Transcriber"] // "IBM" or "CMUSphinx4"
-	fmt.Println("Diarizer: ", diarizer, "   Transcriber: ", transcriber)
+	diarizer := r.Header.Get("Diarizer")       // "IBM" or "Aalto"
+	transcriber := r.Header.Get("Transcriber") // "IBM" or "CMUSphinx4"
 
 	meetingUuid := h.Uuid.GetUuid()
 	soundDir := filepath.Join(h.SoundRootDir, meetingUuid)
@@ -115,8 +116,13 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	for {
 		part, err := reader.NextPart()
-		if err == io.EOF {
+		time.Sleep(time.Second)
+		// the 2nd portion ("|| err.Error() == ...") is to make the tests work; it shouldn't be necessary
+		if err == io.EOF || err.Error() == "multipart: NextPart: EOF" {
 			break
+		}
+		if err != nil {
+			panic(err.Error())
 		}
 		dst, err := h.FileSystem.Create(filepath.Join(soundDir, "meeting.wav"))
 		if err != nil {
@@ -143,7 +149,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	dst.Close()
 	meetingWavFilepath := fmt.Sprintf("/blabbertabber/soundFiles/%s/meeting.wav", meetingUuid)
 	diarizationFilepath := fmt.Sprintf("/blabbertabber/diarizationResults/%s/diarization.txt", meetingUuid)
-	diarizationCommand := []string{
+	AaltoCommand := []string{
 		"run",
 		"--volume=/var/blabbertabber:/blabbertabber",
 		"--workdir=/speaker-diarization",
@@ -154,7 +160,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		diarizationFilepath,
 	}
 	transcriptionFilepath := fmt.Sprintf("/blabbertabber/diarizationResults/%s/transcription.txt", meetingUuid)
-	transcriptionCommand := []string{
+	CMUSphinx4Command := []string{
 		"run",
 		"--volume=/var/blabbertabber:/blabbertabber",
 		"blabbertabber/cmu-sphinx4-transcriber",
@@ -166,6 +172,44 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		meetingWavFilepath,
 		transcriptionFilepath,
 	}
-	go h.DockerRunner.Run("diarization", resultsDir, diarizationCommand...)
-	go h.DockerRunner.Run("transcription", resultsDir, transcriptionCommand...)
+	IBMCommand := []string{
+		"run",
+		"--volume=/var/blabbertabber:/blabbertabber",
+		"blabbertabber/cmu-sphinx4-transcriber",
+		"blabbertabber/ibm-watson-stt",
+		"ADD STUFF LIKE THE KEY HERE",
+	}
+
+	var diarizationCmd, transcriptionCmd []string
+	switch diarizer {
+	case "IBM":
+		diarizationCmd = IBMCommand
+	case "Aalto":
+		diarizationCmd = AaltoCommand
+	default:
+		panic("I have no idea how to diarize with " + diarizer)
+	}
+	switch transcriber {
+	case "IBM:":
+		transcriptionCmd = IBMCommand
+	case "CMUSphinx4":
+		transcriptionCmd = CMUSphinx4Command
+	default:
+		panic("I have no idea how to diarize with " + diarizer)
+	}
+	// sync.WaitGroup accommodates our testing requirements
+	wg := new(sync.WaitGroup)
+	wg.Add(1)
+	go func() {
+		h.DockerRunner.Run("diarization", resultsDir, diarizationCmd...)
+		wg.Done()
+	}()
+	wg.Add(1)
+	go func() {
+		if diarizer != transcriber {
+			h.DockerRunner.Run("transcription", resultsDir, transcriptionCmd...)
+		}
+		wg.Done()
+	}()
+	wg.Wait()
 }
