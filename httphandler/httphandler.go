@@ -190,12 +190,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		panic("I have no idea how to diarize with " + diarizer)
 	}
 	switch transcriber {
-	case "IBM:":
+	case "IBM":
 		transcriptionCmd = IBMCommand
 	case "CMUSphinx4":
 		transcriptionCmd = CMUSphinx4Command
 	default:
-		panic("I have no idea how to diarize with " + diarizer)
+		panic("I have no idea how to transcribe with " + transcriber)
 	}
 	// sync.WaitGroup accommodates our testing requirements
 	wg := new(sync.WaitGroup)
