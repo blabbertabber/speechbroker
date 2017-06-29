@@ -11,8 +11,11 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
+	"time"
 )
 
+// `counterfeiter httphandler/httphandler.go Uuid`
 type Uuid interface {
 	GetUuid() string
 }
@@ -23,6 +26,28 @@ func (u UuidReal) GetUuid() string {
 	return uuid.New().String()
 }
 
+// `counterfeiter httphandler/httphandler.go FileSystem`
+type FileSystem interface {
+	MkdirAll(string, os.FileMode) error
+	Create(string) (*os.File, error)
+	Copy(io.Writer, io.Reader) (int64, error)
+}
+
+type FileSystemReal struct{}
+
+func (FileSystemReal) MkdirAll(path string, mode os.FileMode) error {
+	return os.MkdirAll(path, mode)
+}
+
+func (FileSystemReal) Create(name string) (*os.File, error) {
+	return os.Create(name)
+}
+
+func (FileSystemReal) Copy(dst io.Writer, src io.Reader) (int64, error) {
+	return io.Copy(dst, src)
+}
+
+// `counterfeiter httphandler/httphandler.go DockerRunner`
 type DockerRunner interface {
 	Run(action string, resultsDir string, dockerCommandArgs ...string)
 }
@@ -33,91 +58,98 @@ func (d DockerRunnerReal) Run(action string, resultsDir string, dockerCommandArg
 	dst, err := os.Create(filepath.Join(resultsDir, action+"_begun"))
 	log.Print(strings.Join(dockerCommandArgs, " "+"\n"))
 	if err != nil {
-		log.Fatal("Create: ", err)
+		panic("Create: " + err.Error())
 	}
 	dst.Close()
 	command := exec.Command("docker", dockerCommandArgs...)
 	stderr, err := command.StderrPipe()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	if err := command.Start(); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	slurp, _ := ioutil.ReadAll(stderr)
 	log.Printf("%s\n", slurp)
 
 	if err := command.Wait(); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	dst, err = os.Create(filepath.Join(resultsDir, action+"_ended"))
 }
 
-type HttpHandler struct {
+type Handler struct {
 	Uuid           Uuid
+	FileSystem     FileSystem
 	DockerRunner   DockerRunner
 	SoundRootDir   string
 	ResultsRootDir string
 }
 
-func (h HttpHandler) Handler(w http.ResponseWriter, r *http.Request) {
-	diarizer := r.Header["Diarizer"]
-	transcriber := r.Header["Transcriber"]
-	fmt.Println("Diarizer: ", diarizer, "   Transcriber: ", transcriber)
+func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// `diarizer` and `transcriber` _must_ match what the Android client sends
+	// e.g.  https://github.com/blabbertabber/blabbertabber/blob/fea98684ad500380ef347cff584821ee52098c1e/app/src/main/java/com/blabbertabber/blabbertabber/RecordingActivity.java#L386-L392
+	diarizer := r.Header.Get("Diarizer")       // "IBM" or "Aalto"
+	transcriber := r.Header.Get("Transcriber") // "IBM" or "CMUSphinx4"
 
 	meetingUuid := h.Uuid.GetUuid()
 	soundDir := filepath.Join(h.SoundRootDir, meetingUuid)
-	err := os.MkdirAll(soundDir, 0777)
+	err := h.FileSystem.MkdirAll(soundDir, 0777)
 	if err != nil {
-		log.Fatal("MkdirAll: ", err)
+		panic(err.Error())
 	}
 	resultsDir := filepath.Join(h.ResultsRootDir, meetingUuid)
-	err = os.MkdirAll(resultsDir, 0777)
+	err = h.FileSystem.MkdirAll(resultsDir, 0777)
 	if err != nil {
-		log.Fatal("MkdirAll: ", err)
+		panic(err.Error())
 	}
-	dst, err := os.Create(filepath.Join(resultsDir, "00_upload_begun"))
+	dst, err := h.FileSystem.Create(filepath.Join(resultsDir, "00_upload_begun"))
 	if err != nil {
-		log.Fatal("Create: ", err)
+		panic(err.Error())
 	}
 	dst.Close()
 	reader, err := r.MultipartReader()
 	if err != nil {
-		log.Fatal("MultipartReader: ", err)
+		panic(err.Error())
 	}
 	for {
 		part, err := reader.NextPart()
-		if err == io.EOF {
+		time.Sleep(time.Second)
+		// the 2nd portion ("|| err.Error() == ...") is to make the tests work; it shouldn't be necessary
+		if err == io.EOF || err.Error() == "multipart: NextPart: EOF" {
 			break
 		}
-		dst, err := os.Create(filepath.Join(soundDir, "meeting.wav"))
 		if err != nil {
-			log.Fatal("Create: ", err)
+			panic(err.Error())
+		}
+		dst, err := h.FileSystem.Create(filepath.Join(soundDir, "meeting.wav"))
+		if err != nil {
+			panic(err.Error())
 		}
 		defer dst.Close()
 
-		if _, err := io.Copy(dst, part); err != nil {
-			log.Fatal("Copy: ", err)
+		if _, err := h.FileSystem.Copy(dst, part); err != nil {
+			panic(err.Error())
 		}
 	}
-	dst, err = os.Create(filepath.Join(resultsDir, "01_upload_finished"))
+	dst, err = h.FileSystem.Create(filepath.Join(resultsDir, "01_upload_finished"))
 	if err != nil {
-		log.Fatal("Create: ", err)
+		panic(err.Error())
 	}
 	dst.Close()
 	// return weblink to client "https://diarizer.blabbertabber.com/UUID"
 	justTheHost := strings.Split(r.Host, ":")[0]
 	w.Write([]byte(fmt.Sprintf("https://%s?meeting=%s", justTheHost, meetingUuid)))
-	dst, err = os.Create(filepath.Join(resultsDir, "03_transcription_begun"))
+	dst, err = h.FileSystem.Create(filepath.Join(resultsDir, "03_transcription_begun"))
 	if err != nil {
-		log.Fatal("Create: ", err)
+		panic(err.Error())
 	}
 	dst.Close()
 	meetingWavFilepath := fmt.Sprintf("/blabbertabber/soundFiles/%s/meeting.wav", meetingUuid)
 	diarizationFilepath := fmt.Sprintf("/blabbertabber/diarizationResults/%s/diarization.txt", meetingUuid)
-	diarizationCommand := []string{
+	AaltoCommand := []string{
 		"run",
 		"--volume=/var/blabbertabber:/blabbertabber",
 		"--workdir=/speaker-diarization",
@@ -128,7 +160,7 @@ func (h HttpHandler) Handler(w http.ResponseWriter, r *http.Request) {
 		diarizationFilepath,
 	}
 	transcriptionFilepath := fmt.Sprintf("/blabbertabber/diarizationResults/%s/transcription.txt", meetingUuid)
-	transcriptionCommand := []string{
+	CMUSphinx4Command := []string{
 		"run",
 		"--volume=/var/blabbertabber:/blabbertabber",
 		"blabbertabber/cmu-sphinx4-transcriber",
@@ -140,6 +172,44 @@ func (h HttpHandler) Handler(w http.ResponseWriter, r *http.Request) {
 		meetingWavFilepath,
 		transcriptionFilepath,
 	}
-	go h.DockerRunner.Run("diarization", resultsDir, diarizationCommand...)
-	go h.DockerRunner.Run("transcription", resultsDir, transcriptionCommand...)
+	IBMCommand := []string{
+		"run",
+		"--volume=/var/blabbertabber:/blabbertabber",
+		"blabbertabber/cmu-sphinx4-transcriber",
+		"blabbertabber/ibm-watson-stt",
+		"ADD STUFF LIKE THE KEY HERE",
+	}
+
+	var diarizationCmd, transcriptionCmd []string
+	switch diarizer {
+	case "IBM":
+		diarizationCmd = IBMCommand
+	case "Aalto":
+		diarizationCmd = AaltoCommand
+	default:
+		panic("I have no idea how to diarize with " + diarizer)
+	}
+	switch transcriber {
+	case "IBM:":
+		transcriptionCmd = IBMCommand
+	case "CMUSphinx4":
+		transcriptionCmd = CMUSphinx4Command
+	default:
+		panic("I have no idea how to diarize with " + diarizer)
+	}
+	// sync.WaitGroup accommodates our testing requirements
+	wg := new(sync.WaitGroup)
+	wg.Add(1)
+	go func() {
+		h.DockerRunner.Run("diarization", resultsDir, diarizationCmd...)
+		wg.Done()
+	}()
+	wg.Add(1)
+	go func() {
+		if diarizer != transcriber {
+			h.DockerRunner.Run("transcription", resultsDir, transcriptionCmd...)
+		}
+		wg.Done()
+	}()
+	wg.Wait()
 }

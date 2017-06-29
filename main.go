@@ -1,8 +1,9 @@
 package main
 
-// curl -F "a=1234" https://diarizer.blabbertabber.com:9443/api/v1/upload
+// curl -F "a=1234" https://test.diarizer.com:9443/api/v1/upload
+// curl -F "meeting.wav=@/dev/null" http://test.diarizer.com:8080/api/v1/upload
 // curl -F "meeting.wav=@/Users/cunnie/Google Drive/BlabberTabber/ICSI-diarizer-sample-meeting.wav" https://test.diarizer.com:9443/api/v1/upload
-// curl --trace - -F "meeting.wav=@/dev/null" http://diarizer.blabbertabber.com:8080/api/v1/upload
+// curl --trace - -F "meeting.wav=@/dev/null" http://test.diarizer.com:8080/api/v1/upload
 // cleanup: sudo -u diarizer find /var/blabbertabber -name "*-*-*" -exec rm -rf {} \;
 
 import (
@@ -20,13 +21,14 @@ var keyPath = filepath.FromSlash("/etc/pki/nginx/private/server.key")
 var certPath = filepath.FromSlash("/etc/pki/nginx/server.crt")
 
 func main() {
-	h := httphandler.HttpHandler{
+	h := httphandler.Handler{
 		Uuid:           httphandler.UuidReal{},
+		FileSystem:     httphandler.FileSystemReal{},
 		DockerRunner:   httphandler.DockerRunnerReal{},
 		SoundRootDir:   filepath.FromSlash("/var/blabbertabber/soundFiles/"),
 		ResultsRootDir: filepath.FromSlash("/var/blabbertabber/diarizationResults/"),
 	}
-	http.HandleFunc("/api/v1/upload", h.Handler)
+	http.HandleFunc("/api/v1/upload", h.ServeHTTP)
 
 	go func() {
 		log.Fatal(http.ListenAndServe(CLEAR_PORT, nil))
