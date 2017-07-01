@@ -3,7 +3,7 @@ Description=Diarizer server which diarizes files uploaded to it
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/speechbroker
+ExecStart=/usr/local/bin/speechbroker -ibmServiceCredsPath=/etc/ibm_service_creds.json
 Restart=always
            
 [Install]

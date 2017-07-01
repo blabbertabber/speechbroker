@@ -250,6 +250,20 @@ sudo -u diarizer \
                 -o /blabbertabber/diarizationResults/3426dfcc-fe5f-4686-9279-d997ef9fb0da/results.txt
 ```
 
+Download the IBM Bluemix Watson Speech to Text Service Credentials and copy into `/etc`
+
+* Log into Bluemix
+* Click on the upper-left hamburger
+* **Services &rarr; Watson**
+* click on **Speech-to-Text-*xx***
+* click on **Service credentials**
+* click **View credentials**
+* copy credentials into clipboard
+
+```
+sudo tee /etc/ibm_service_creds.json # paste from clipboard and hit enter+^D
+```
+
 Install service
 ```
 sudo cp speechbroker /usr/local/bin/
@@ -268,14 +282,6 @@ line to `/etc/crontab`
 23 0 *  *  *  * diarizer   find /var/blabbertabber/soundFiles/ -name '*-*-*-*' -type d -mmin +8640 -exec rm -rf {} \;
 ```
 
-Downloading the IBM Bluemix Watson Speech to Text Service Credentials
-
-* Log into Bluemix
-* Click on the upper-left hamburger
-* **Services &rarr; Watson**
-* click on **Speech-to-Text-*xx***
-* click on **Service credentials**
-* click **View credentials**
 
 Testing Locally (i.e. not on diarizer.com or test.diarizer.com)
 
