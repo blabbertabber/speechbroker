@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 )
 
 type fakeWriter struct {
@@ -147,7 +148,7 @@ var _ = Describe("Httphandler", func() {
 				Expect(cmd0).To(Not(Equal(cmd1)))
 				for i := 0; i < fdr.RunCallCount(); i++ {
 					action, dir, args := fdr.RunArgsForCall(i)
-					Expect(dir).To(Equal("/c/d/fake-uuid"))
+					Expect(filepath.ToSlash(dir)).To(Equal("/c/d/fake-uuid"))
 					switch action {
 					case "diarization":
 						checkAaltoDiarizationCmd(args)
