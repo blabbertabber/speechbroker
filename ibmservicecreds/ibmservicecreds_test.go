@@ -50,10 +50,9 @@ var _ = Describe("IBMServiceCreds", func() {
 			})
 		})
 		Context("When path is non-existent", func() {
-			It("panics", func() {
-				Expect(func() {
-					ReadCredsFromPath("/non/existent/path")
-				}).Should(Panic())
+			It("returns an error", func() {
+				_, err := ReadCredsFromPath("/non/existent/path")
+				Expect(err.Error()).To(Equal("open /non/existent/path: The system cannot find the path specified."))
 			})
 		})
 	})

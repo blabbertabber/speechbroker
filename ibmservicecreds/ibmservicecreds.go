@@ -16,7 +16,7 @@ type IBMServiceCreds struct {
 func ReadCredsFromPath(path string) (IBMServiceCreds, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		panic(err)
+		return IBMServiceCreds{}, err
 	}
 	return ReadCredsFromReader(file)
 }

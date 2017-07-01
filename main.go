@@ -29,10 +29,8 @@ func main() {
 
 	ibmServiceCreds, err := ibmservicecreds.ReadCredsFromPath(*ibmServiceCredsPath)
 	if err != nil {
-		panic("I couldn't read the IBM service creds: " + *ibmServiceCredsPath)
+		panic("I couldn't read the IBM service creds: " + *ibmServiceCredsPath + ", error: " + err.Error())
 	}
-
-	fmt.Printf("I got these creds: %s", *ibmServiceCredsPath)
 
 	h := httphandler.Handler{
 		IBMServiceCreds: ibmServiceCreds,

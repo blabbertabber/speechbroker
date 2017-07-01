@@ -273,6 +273,7 @@ Downloading the IBM Bluemix Watson Speech to Text Service Credentials
 * Log into Bluemix
 * Click on the upper-left hamburger
 * **Services &rarr; Watson**
+* click on **Speech-to-Text-*xx***
 * click on **Service credentials**
 * click **View credentials**
 
