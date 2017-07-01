@@ -275,3 +275,19 @@ Downloading the IBM Bluemix Watson Speech to Text Service Credentials
 * **Services &rarr; Watson**
 * click on **Service credentials**
 * click **View credentials**
+
+Testing Locally (i.e. not on diarizer.com or test.diarizer.com)
+
+* Create the key & certificate
+
+```
+openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509 -keyout /tmp/server.key -out /tmp/server.crt
+```
+
+* Run code locally:
+
+```
+go run main.go -keyPath=/tmp/server.key -certPath=/tmp/server.crt
+```
+
+For Windows, check Brendan's _Daily Learned_ file.
