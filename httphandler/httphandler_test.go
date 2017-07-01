@@ -206,9 +206,16 @@ func checkIBMCmd(args []string) {
 	Expect(args).To(Equal([]string{
 		"run",
 		"--volume=/var/blabbertabber:/blabbertabber",
-		"blabbertabber/cmu-sphinx4-transcriber",
 		"blabbertabber/ibm-watson-stt",
-		"ADD STUFF LIKE THE KEY HERE",
+		"python",
+		"/sttClient.py",
+		"-credentials",
+		":",
+		"-model",
+		"en-US_NarrowbandModel",
+		"-in",
+		"/blabbertabber/soundFiles/fake-uuid/meeting.wav",
+		"-out",
+		"/blabbertabber/diarizationResults/fake-uuid",
 	}))
-
 }

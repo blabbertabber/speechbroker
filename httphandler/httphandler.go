@@ -2,6 +2,7 @@ package httphandler
 
 import (
 	"fmt"
+	"github.com/blabbertabber/speechbroker/ibmservicecreds"
 	"github.com/google/uuid"
 	"io"
 	"io/ioutil"
@@ -81,11 +82,12 @@ func (d DockerRunnerReal) Run(action string, resultsDir string, dockerCommandArg
 }
 
 type Handler struct {
-	Uuid           Uuid
-	FileSystem     FileSystem
-	DockerRunner   DockerRunner
-	SoundRootDir   string
-	ResultsRootDir string
+	IBMServiceCreds ibmservicecreds.IBMServiceCreds
+	Uuid            Uuid
+	FileSystem      FileSystem
+	DockerRunner    DockerRunner
+	SoundRootDir    string
+	ResultsRootDir  string
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -148,7 +150,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	dst.Close()
 	meetingWavFilepath := fmt.Sprintf("/blabbertabber/soundFiles/%s/meeting.wav", meetingUuid)
-	diarizationFilepath := fmt.Sprintf("/blabbertabber/diarizationResults/%s/diarization.txt", meetingUuid)
+	aaltoDiarizationFilepath := fmt.Sprintf("/blabbertabber/diarizationResults/%s/diarization.txt", meetingUuid)
 	AaltoCommand := []string{
 		"run",
 		"--volume=/var/blabbertabber:/blabbertabber",
@@ -157,9 +159,9 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		"/speaker-diarization/spk-diarization2.py",
 		meetingWavFilepath,
 		"-o",
-		diarizationFilepath,
+		aaltoDiarizationFilepath,
 	}
-	transcriptionFilepath := fmt.Sprintf("/blabbertabber/diarizationResults/%s/transcription.txt", meetingUuid)
+	cmuSphinx4transcriptionFilepath := fmt.Sprintf("/blabbertabber/diarizationResults/%s/transcription.txt", meetingUuid)
 	CMUSphinx4Command := []string{
 		"run",
 		"--volume=/var/blabbertabber:/blabbertabber",
@@ -170,14 +172,24 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		"/sphinx4-5prealpha-src/sphinx4-core/build/libs/sphinx4-core-5prealpha-SNAPSHOT.jar:/sphinx4-5prealpha-src/sphinx4-data/build/libs/sphinx4-data-5prealpha-SNAPSHOT.jar:.",
 		"Transcriber",
 		meetingWavFilepath,
-		transcriptionFilepath,
+		cmuSphinx4transcriptionFilepath,
 	}
+	// run python ./sttClient.py -credentials 9f6c2cb4-d9d3-49db-96e4-58406a2fxxxx:8rgjxxxxxxxx -model en-US_NarrowbandModel -in <(echo /Users/cunnie/Google Drive/BlabberTabber/ICSI-diarizer-sample-meeting.wav) -out /tmp/junk
+
 	IBMCommand := []string{
 		"run",
 		"--volume=/var/blabbertabber:/blabbertabber",
-		"blabbertabber/cmu-sphinx4-transcriber",
 		"blabbertabber/ibm-watson-stt",
-		"ADD STUFF LIKE THE KEY HERE",
+		"python",
+		"/sttClient.py",
+		"-credentials",
+		h.IBMServiceCreds.Username + ":" + h.IBMServiceCreds.Password,
+		"-model",
+		"en-US_NarrowbandModel",
+		"-in",
+		meetingWavFilepath,
+		"-out",
+		fmt.Sprintf("/blabbertabber/diarizationResults/%s", meetingUuid),
 	}
 
 	var diarizationCmd, transcriptionCmd []string

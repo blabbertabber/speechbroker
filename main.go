@@ -10,6 +10,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/blabbertabber/speechbroker/httphandler"
+	"github.com/blabbertabber/speechbroker/ibmservicecreds"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -19,21 +20,27 @@ const CLEAR_PORT = ":8080" // for troubleshooting in cleartext
 const SSL_PORT = ":9443"
 
 func main() {
-	var IBMConfigFile = flag.String("IBMConfigFile", "",
+	var ibmServiceCredsPath = flag.String("ibmServiceCredsPath", "",
 		"pathname to JSON-formatted IBM Bluemix Watson Speech to Text service credentials")
 	var keyPath = flag.String("keyPath", "/etc/pki/nginx/private/server.key", "path to HTTPS private key")
 	var certPath = flag.String("certPath", "/etc/pki/nginx/server.crt", "path to HTTPS certificate")
 
 	flag.Parse()
 
-	fmt.Printf("I got these creds: %s", *IBMConfigFile)
+	ibmServiceCreds, err := ibmservicecreds.ReadCredsFromPath(*ibmServiceCredsPath)
+	if err != nil {
+		panic("I couldn't read the IBM service creds: " + *ibmServiceCredsPath)
+	}
+
+	fmt.Printf("I got these creds: %s", *ibmServiceCredsPath)
 
 	h := httphandler.Handler{
-		Uuid:           httphandler.UuidReal{},
-		FileSystem:     httphandler.FileSystemReal{},
-		DockerRunner:   httphandler.DockerRunnerReal{},
-		SoundRootDir:   filepath.FromSlash("/var/blabbertabber/soundFiles/"),
-		ResultsRootDir: filepath.FromSlash("/var/blabbertabber/diarizationResults/"),
+		IBMServiceCreds: ibmServiceCreds,
+		Uuid:            httphandler.UuidReal{},
+		FileSystem:      httphandler.FileSystemReal{},
+		DockerRunner:    httphandler.DockerRunnerReal{},
+		SoundRootDir:    filepath.FromSlash("/var/blabbertabber/soundFiles/"),
+		ResultsRootDir:  filepath.FromSlash("/var/blabbertabber/diarizationResults/"),
 	}
 	http.HandleFunc("/api/v1/upload", h.ServeHTTP)
 
