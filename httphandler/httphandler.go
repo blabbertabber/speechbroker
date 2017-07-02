@@ -120,7 +120,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		part, err := reader.NextPart()
 		time.Sleep(time.Second)
 		// the 2nd portion ("|| err.Error() == ...") is to make the tests work; it shouldn't be necessary
-		if err == io.EOF || err.Error() == "multipart: NextPart: EOF" {
+		if err != nil && (err == io.EOF || err.Error() == "multipart: NextPart: EOF") {
 			break
 		}
 		if err != nil {
