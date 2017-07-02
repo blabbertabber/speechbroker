@@ -2,7 +2,6 @@ package parseibm
 
 import (
 	"encoding/json"
-	"log"
 )
 
 /*
@@ -43,12 +42,11 @@ type SpeakerLabel struct {
 // http://attilaolah.eu/2013/11/29/json-decoding-in-go/
 func (ts *Timestamp) UnmarshalJSON(b []byte) (err error) {
 	j := []interface{}{"", 0, 0}
-	if ok := json.Unmarshal(b, &j); ok == nil {
+	if err = json.Unmarshal(b, &j); err == nil {
 		ts.Word = j[0].(string)
 		ts.From = j[1].(float64)
 		ts.To = j[2].(float64)
 		return
 	}
-	log.Fatal("It didn't work. We tried, but it didn't work.")
 	return
 }

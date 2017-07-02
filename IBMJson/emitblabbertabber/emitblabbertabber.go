@@ -3,7 +3,6 @@ package emitblabbertabber
 import (
 	"fmt"
 	"github.com/blabbertabber/speechbroker/IBMJson/parseibm"
-	"log"
 	"math"
 	"sort"
 	"strings"
@@ -54,7 +53,7 @@ func CalcSummary(utterances []Utterance) (summary Summary, err error) {
 func Coerce(transaction parseibm.IBMTranscription) (utterances []Utterance, err error) {
 	transaction.SpeakerLabels, err = SquashSpeakerLabels(transaction.SpeakerLabels)
 	if err != nil {
-		log.Fatal("I was unable to squash the speakers!")
+		panic(err.Error())
 	}
 
 	if transaction.Results == nil {
