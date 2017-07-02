@@ -25,7 +25,7 @@ cd $GOPATH/src/github.com/blabbertabber/speechbroker
 git pull -r
 go build
 sudo systemctl stop diarizer.service
-sudo -u diarizer ./speechbroker
+sudo -u diarizer ./speechbroker -ibmServiceCredsPath=/etc/ibm_service_creds.json
  # run BlabberTabber, upload file, check output -- .txt files there?
  # if not, debug and repeat
 sudo cp speechbroker /usr/local/bin/
@@ -41,7 +41,7 @@ cd $GOPATH/src/github.com/blabbertabber/speechbroker
 git pull -r
 go build
 sudo systemctl stop diarizer.service
-sudo -u diarizer ./speechbroker
+sudo -u diarizer ./speechbroker -ibmServiceCredsPath=/etc/ibm_service_creds.json
  # run BlabberTabber, upload file, check output -- .txt files there?
  # if not, debug and repeat
 sudo cp speechbroker /usr/local/bin/
