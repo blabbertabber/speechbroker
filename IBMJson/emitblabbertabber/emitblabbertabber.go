@@ -1,3 +1,6 @@
+// emitblabbertabber massages the output from the IBM Speech to Text
+// back-end into a format that can be readily output for easy consumption
+// by the front-end javascript.
 package emitblabbertabber
 
 import (

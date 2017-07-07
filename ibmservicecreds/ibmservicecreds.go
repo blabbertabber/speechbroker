@@ -1,3 +1,4 @@
+// ibmservicecreds converts JSON-formtted IBM creds into a Golang struct
 package ibmservicecreds
 
 import (
