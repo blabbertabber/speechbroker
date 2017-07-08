@@ -4,14 +4,15 @@ import (
 	. "github.com/blabbertabber/speechbroker/httphandler"
 
 	"errors"
+	"github.com/blabbertabber/speechbroker/diarizerrunner/diarizerrunnerfakes"
 	"github.com/blabbertabber/speechbroker/httphandler/httphandlerfakes"
+	"github.com/blabbertabber/speechbroker/ibmservicecreds"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
 )
 
 type fakeWriter struct {
@@ -49,7 +50,7 @@ var _ = Describe("Httphandler", func() {
 	var r *http.Request
 	var fw *fakeWriter
 	var ffs *httphandlerfakes.FakeFileSystem
-	var fdr *httphandlerfakes.FakeDockerRunner
+	var fdr *diarizerrunnerfakes.FakeDiarizerRunner
 	//var frc *fakeReadCloser
 	var boundary = "ILoveMyDogCherieSheIsSoWarmAndCuddly"
 
@@ -59,16 +60,17 @@ var _ = Describe("Httphandler", func() {
 		ffs = new(httphandlerfakes.FakeFileSystem)
 		ffs.MkdirAllReturns(nil)
 		ffs.CreateReturns(os.Create("/dev/null"))
-		fdr = new(httphandlerfakes.FakeDockerRunner)
+		fdr = new(diarizerrunnerfakes.FakeDiarizerRunner)
 
 		fakeUuid.GetUuidReturns("fake-uuid")
 
 		handler = Handler{
-			Uuid:           fakeUuid,
-			FileSystem:     ffs,
-			SoundRootDir:   "/a/b",
-			ResultsRootDir: "/c/d",
-			DockerRunner:   fdr,
+			Uuid:            fakeUuid,
+			IBMServiceCreds: ibmservicecreds.IBMServiceCreds{},
+			FileSystem:      ffs,
+			Runner:          fdr,
+			SoundRootDir:    "/a/b",
+			ResultsRootDir:  "/c/d",
 		}
 
 		frc := fakeReadCloser("--" + boundary + "\r\n" +
@@ -139,21 +141,19 @@ var _ = Describe("Httphandler", func() {
 				handler.ServeHTTP(fw, r)
 				Expect(fw.Written).To(Equal("https://test.diarizer.com?meeting=fake-uuid"))
 			})
-			It("invokes Docker with the correct arguments", func() {
+			It("invokes the diarizer runner with the correct arguments", func() {
 
 				handler.ServeHTTP(fw, r)
 				Expect(fdr.RunCallCount()).To(Equal(2))
-				cmd0, _, _ := fdr.RunArgsForCall(0)
-				cmd1, _, _ := fdr.RunArgsForCall(1)
-				Expect(cmd0).To(Not(Equal(cmd1)))
+				backEnd0, _, _ := fdr.RunArgsForCall(0)
+				backEnd1, _, _ := fdr.RunArgsForCall(1)
+				Expect(backEnd0).To(Not(Equal(backEnd1)))
 				for i := 0; i < fdr.RunCallCount(); i++ {
-					action, dir, args := fdr.RunArgsForCall(i)
-					Expect(filepath.ToSlash(dir)).To(Equal("/c/d/fake-uuid"))
+					action, uuid, _ := fdr.RunArgsForCall(i)
+					Expect(uuid).To(Equal("fake-uuid"))
 					switch action {
-					case "diarization":
-						checkAaltoDiarizationCmd(args)
-					case "transcription":
-						checkCMUSphinx4TranscriptionCmd(args)
+					case "Aalto":
+					case "CMUSphinx4":
 					default:
 						panic("I have no idea what action this should be: " + action)
 					}
@@ -169,54 +169,9 @@ var _ = Describe("Httphandler", func() {
 				r.Header.Add("Transcriber", "IBM")
 				handler.ServeHTTP(fw, r)
 				Expect(fdr.RunCallCount()).To(Equal(1))
-				_, _, args := fdr.RunArgsForCall(0)
-				checkIBMCmd(args)
+				backEnd, _, _ := fdr.RunArgsForCall(0)
+				Expect(backEnd).To(Equal("IBM"))
 			})
 		})
 	})
 })
-
-func checkAaltoDiarizationCmd(args []string) {
-	Expect(args).To(Equal([]string{
-		"run",
-		"--volume=/var/blabbertabber:/blabbertabber",
-		"--workdir=/speaker-diarization",
-		"blabbertabber/aalto-speech-diarizer",
-		"/speaker-diarization/spk-diarization2.py",
-		"/blabbertabber/soundFiles/fake-uuid/meeting.wav",
-		"-o",
-		"/blabbertabber/diarizationResults/fake-uuid/diarization.txt",
-	}))
-}
-func checkCMUSphinx4TranscriptionCmd(args []string) {
-	Expect(args).To(Equal([]string{
-		"run",
-		"--volume=/var/blabbertabber:/blabbertabber",
-		"blabbertabber/cmu-sphinx4-transcriber",
-		"java",
-		"-Xmx2g",
-		"-cp",
-		"/sphinx4-5prealpha-src/sphinx4-core/build/libs/sphinx4-core-5prealpha-SNAPSHOT.jar:/sphinx4-5prealpha-src/sphinx4-data/build/libs/sphinx4-data-5prealpha-SNAPSHOT.jar:.",
-		"Transcriber",
-		"/blabbertabber/soundFiles/fake-uuid/meeting.wav",
-		"/blabbertabber/diarizationResults/fake-uuid/transcription.txt",
-	}))
-}
-
-func checkIBMCmd(args []string) {
-	Expect(args).To(Equal([]string{
-		"run",
-		"--volume=/var/blabbertabber:/blabbertabber",
-		"blabbertabber/ibm-watson-stt",
-		"python",
-		"/sttClient.py",
-		"-credentials",
-		":",
-		"-model",
-		"en-US_NarrowbandModel",
-		"-in",
-		"/blabbertabber/soundFiles/fake-uuid/meeting.wav",
-		"-out",
-		"/blabbertabber/diarizationResults/fake-uuid",
-	}))
-}

@@ -1,3 +1,6 @@
+// parseibm parses the JSON output of the IBM Speech to Text backend
+// and converts it to Golang structs for subsequent processing
+// (via emitblabbertabber) and output.
 package parseibm
 
 import (

@@ -1,15 +1,15 @@
+// httphandler handles web server requests (POSTs) and invokes
+// back-end speech processors and returns a URL of results to the client.
 package httphandler
 
 import (
 	"fmt"
+	"github.com/blabbertabber/speechbroker/diarizerrunner"
 	"github.com/blabbertabber/speechbroker/ibmservicecreds"
 	"github.com/google/uuid"
 	"io"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -48,44 +48,11 @@ func (FileSystemReal) Copy(dst io.Writer, src io.Reader) (int64, error) {
 	return io.Copy(dst, src)
 }
 
-// `counterfeiter httphandler/httphandler.go DockerRunner`
-type DockerRunner interface {
-	Run(action string, resultsDir string, dockerCommandArgs ...string)
-}
-
-type DockerRunnerReal struct{}
-
-func (d DockerRunnerReal) Run(action string, resultsDir string, dockerCommandArgs ...string) {
-	dst, err := os.Create(filepath.Join(resultsDir, action+"_begun"))
-	log.Print(strings.Join(dockerCommandArgs, " "+"\n"))
-	if err != nil {
-		panic("Create: " + err.Error())
-	}
-	dst.Close()
-	command := exec.Command("docker", dockerCommandArgs...)
-	stderr, err := command.StderrPipe()
-	if err != nil {
-		panic(err)
-	}
-
-	if err := command.Start(); err != nil {
-		panic(err)
-	}
-
-	slurp, _ := ioutil.ReadAll(stderr)
-	log.Printf("%s\n", slurp)
-
-	if err := command.Wait(); err != nil {
-		panic(err)
-	}
-	dst, err = os.Create(filepath.Join(resultsDir, action+"_ended"))
-}
-
 type Handler struct {
 	IBMServiceCreds ibmservicecreds.IBMServiceCreds
 	Uuid            Uuid
 	FileSystem      FileSystem
-	DockerRunner    DockerRunner
+	Runner          diarizerrunner.DiarizerRunner
 	SoundRootDir    string
 	ResultsRootDir  string
 }
@@ -149,77 +116,18 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		panic(err.Error())
 	}
 	dst.Close()
-	meetingWavFilepath := fmt.Sprintf("/blabbertabber/soundFiles/%s/meeting.wav", meetingUuid)
-	aaltoDiarizationFilepath := fmt.Sprintf("/blabbertabber/diarizationResults/%s/diarization.txt", meetingUuid)
-	AaltoCommand := []string{
-		"run",
-		"--volume=/var/blabbertabber:/blabbertabber",
-		"--workdir=/speaker-diarization",
-		"blabbertabber/aalto-speech-diarizer",
-		"/speaker-diarization/spk-diarization2.py",
-		meetingWavFilepath,
-		"-o",
-		aaltoDiarizationFilepath,
-	}
-	cmuSphinx4transcriptionFilepath := fmt.Sprintf("/blabbertabber/diarizationResults/%s/transcription.txt", meetingUuid)
-	CMUSphinx4Command := []string{
-		"run",
-		"--volume=/var/blabbertabber:/blabbertabber",
-		"blabbertabber/cmu-sphinx4-transcriber",
-		"java",
-		"-Xmx2g",
-		"-cp",
-		"/sphinx4-5prealpha-src/sphinx4-core/build/libs/sphinx4-core-5prealpha-SNAPSHOT.jar:/sphinx4-5prealpha-src/sphinx4-data/build/libs/sphinx4-data-5prealpha-SNAPSHOT.jar:.",
-		"Transcriber",
-		meetingWavFilepath,
-		cmuSphinx4transcriptionFilepath,
-	}
-	// run python ./sttClient.py -credentials 9f6c2cb4-d9d3-49db-96e4-58406a2fxxxx:8rgjxxxxxxxx -model en-US_NarrowbandModel -in <(echo /Users/cunnie/Google Drive/BlabberTabber/ICSI-diarizer-sample-meeting.wav) -out /tmp/junk
 
-	IBMCommand := []string{
-		"run",
-		"--volume=/var/blabbertabber:/blabbertabber",
-		"blabbertabber/ibm-watson-stt",
-		"python",
-		"/sttClient.py",
-		"-credentials",
-		h.IBMServiceCreds.Username + ":" + h.IBMServiceCreds.Password,
-		"-model",
-		"en-US_NarrowbandModel",
-		"-in",
-		meetingWavFilepath,
-		"-out",
-		fmt.Sprintf("/blabbertabber/diarizationResults/%s", meetingUuid),
-	}
-
-	var diarizationCmd, transcriptionCmd []string
-	switch diarizer {
-	case "IBM":
-		diarizationCmd = IBMCommand
-	case "Aalto":
-		diarizationCmd = AaltoCommand
-	default:
-		panic("I have no idea how to diarize with " + diarizer)
-	}
-	switch transcriber {
-	case "IBM":
-		transcriptionCmd = IBMCommand
-	case "CMUSphinx4":
-		transcriptionCmd = CMUSphinx4Command
-	default:
-		panic("I have no idea how to transcribe with " + transcriber)
-	}
 	// sync.WaitGroup accommodates our testing requirements
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
 	go func() {
-		h.DockerRunner.Run("diarization", resultsDir, diarizationCmd...)
+		h.Runner.Run(diarizer, meetingUuid, h.IBMServiceCreds)
 		wg.Done()
 	}()
 	wg.Add(1)
 	go func() {
 		if diarizer != transcriber {
-			h.DockerRunner.Run("transcription", resultsDir, transcriptionCmd...)
+			h.Runner.Run(transcriber, meetingUuid, h.IBMServiceCreds)
 		}
 		wg.Done()
 	}()
