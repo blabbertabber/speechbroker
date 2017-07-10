@@ -9,6 +9,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/blabbertabber/speechbroker/cmdrunner"
+	"github.com/blabbertabber/speechbroker/diarizerrunner"
 	"github.com/blabbertabber/speechbroker/httphandler"
 	"github.com/blabbertabber/speechbroker/ibmservicecreds"
 	"log"
@@ -36,9 +38,11 @@ func main() {
 		IBMServiceCreds: ibmServiceCreds,
 		Uuid:            httphandler.UuidReal{},
 		FileSystem:      httphandler.FileSystemReal{},
-		DockerRunner:    httphandler.DockerRunnerReal{},
-		SoundRootDir:    filepath.FromSlash("/var/blabbertabber/soundFiles/"),
-		ResultsRootDir:  filepath.FromSlash("/var/blabbertabber/diarizationResults/"),
+		Runner: diarizerrunner.Runner{
+			CmdRunner: cmdrunner.CmdRunnerReal{},
+		},
+		SoundRootDir:   filepath.FromSlash("/var/blabbertabber/soundFiles/"),
+		ResultsRootDir: filepath.FromSlash("/var/blabbertabber/diarizationResults/"),
 	}
 	http.HandleFunc("/api/v1/upload", h.ServeHTTP)
 

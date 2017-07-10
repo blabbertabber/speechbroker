@@ -7,7 +7,6 @@ import (
 	"github.com/blabbertabber/speechbroker/IBMJson/emitblabbertabber"
 	"github.com/blabbertabber/speechbroker/IBMJson/parseibm"
 	"io/ioutil"
-	"log"
 	"os"
 )
 
