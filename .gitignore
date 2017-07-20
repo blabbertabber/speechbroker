@@ -29,6 +29,7 @@ _testmain.go
 
 # Executables
 speechbroker
+ibm_json
 main
 .idea/
 DiarizerServer/
