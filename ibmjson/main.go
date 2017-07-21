@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/blabbertabber/speechbroker/IBMJson/emitblabbertabber"
-	"github.com/blabbertabber/speechbroker/IBMJson/parseibm"
+	"github.com/blabbertabber/speechbroker/ibmjson/emitblabbertabber"
+	"github.com/blabbertabber/speechbroker/ibmjson/parseibm"
 	"io/ioutil"
 	"os"
 )
