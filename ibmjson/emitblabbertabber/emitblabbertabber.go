@@ -5,7 +5,7 @@ package emitblabbertabber
 
 import (
 	"fmt"
-	"github.com/blabbertabber/speechbroker/IBMJson/parseibm"
+	"github.com/blabbertabber/speechbroker/ibmjson/parseibm"
 	"math"
 	"sort"
 	"strings"

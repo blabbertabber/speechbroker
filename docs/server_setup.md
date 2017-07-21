@@ -266,7 +266,12 @@ sudo tee /etc/ibm_service_creds.json # paste from clipboard and hit enter+^D
 
 Install service
 ```
-sudo cp speechbroker /usr/local/bin/
+cd
+mkdir go
+go get github.com/blabbertabber/speechbroker/
+go build github.com/blabbertabber/speechbroker
+go build github.com/blabbertabber/speechbroker/ibmjson
+sudo cp speechbroker ibm_json /usr/local/bin/
 sudo chown diarizer:diarizer /usr/local/bin/speechbroker
  # the following is bad; should have other ways to set uid
 sudo chown diarizer:diarizer /usr/local/bin/speechbroker
