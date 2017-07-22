@@ -13,9 +13,13 @@ LABEL authors="Brian Cunnie <brian.cunnie@gmail.com>, Brendan Cunnie <saintbrend
 
 CMD ["/bin/bash"]
 
-RUN dnf groupinstall -y "Development Tools"
+RUN dnf groupinstall -y "Development Tools" && \
+    dnf install -y redhat-rpm-config && \
+    dnf install -y python && \
+    dnf install -y python-devel
 
-RUN git clone https://github.com/watson-developer-cloud/speech-to-text-websockets-python
+RUN git clone https://github.com/watson-developer-cloud/speech-to-text-websockets-python && \
+    pip install -r /speech-to-text-websockets-python/requirements.txt
 
 RUN   cd speech-to-text-websockets-python; \
   curl -OL https://raw.githubusercontent.com/blabbertabber/speechbroker/master/assets/ibm-watson-stt/sttClient.patch; \
