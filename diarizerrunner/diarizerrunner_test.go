@@ -59,23 +59,38 @@ var _ = Describe("diarizerrunner", func() {
 		})
 	})
 	Context("When the runner is \"IBM\"", func() {
-		It("runs Docker with the correct arguments", func() {
+		It("runs several commands with the correct arguments", func() {
 			Expect(r.Run("IBM", "fake-uuid", creds)).To(BeNil())
 			Expect(fdr.RunArgsForCall(0)).To(Equal([]string{
+				"bash",
+				"-c",
+				"echo",
+				"/blabbertabber/soundFiles/fake-uuid/meeting.wav",
+				">",
+				"/blabbertabber/soundFiles/fake-uuid/wav_file_list.txt",
+			}))
+			Expect(fdr.RunArgsForCall(1)).To(Equal([]string{
 				"docker",
 				"run",
 				"--volume=/var/blabbertabber:/blabbertabber",
 				"blabbertabber/ibm-watson-stt",
 				"python",
-				"/sttClient.py",
+				"/speech-to-text-websockets-python/sttClient.py",
 				"-credentials",
 				"fake-ibm-username:fake-ibm-password",
 				"-model",
 				"en-US_NarrowbandModel",
 				"-in",
-				"/blabbertabber/soundFiles/fake-uuid/meeting.wav",
+				"/blabbertabber/soundFiles/fake-uuid/wav_file_list.txt",
 				"-out",
-				"/blabbertabber/diarizationResults/fake-uuid",
+				"/blabbertabber/diarizationResults/fake-uuid/ibm_out",
+			}))
+			Expect(fdr.RunArgsForCall(2)).To(Equal([]string{
+				"ibmjson",
+				"-in",
+				"/blabbertabber/diarizationResults/fake-uuid/ibm_out/0.json.txt",
+				"-out",
+				"/blabbertabber/diarizationResults/fake-uuid/ibm_out.json",
 			}))
 		})
 		Context("when there are no credentials passed", func() {
