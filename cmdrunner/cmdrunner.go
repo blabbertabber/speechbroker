@@ -13,9 +13,7 @@ type CmdRunner interface {
 	Run(cmdArgs ...string)
 }
 
-type CmdRunnerReal struct {
-	logger log.Logger
-}
+type CmdRunnerReal struct{}
 
 func (d CmdRunnerReal) Run(cmdArgs ...string) {
 	command := exec.Command(cmdArgs[0], cmdArgs[1:]...)

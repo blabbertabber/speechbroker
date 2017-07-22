@@ -64,10 +64,7 @@ var _ = Describe("diarizerrunner", func() {
 			Expect(fdr.RunArgsForCall(0)).To(Equal([]string{
 				"bash",
 				"-c",
-				"echo",
-				"/blabbertabber/soundFiles/fake-uuid/meeting.wav",
-				">",
-				"/blabbertabber/soundFiles/fake-uuid/wav_file_list.txt",
+				"echo /blabbertabber/soundFiles/fake-uuid/meeting.wav > /var/blabbertabber/soundFiles/fake-uuid/wav_file_list.txt",
 			}))
 			Expect(fdr.RunArgsForCall(1)).To(Equal([]string{
 				"docker",
@@ -86,11 +83,11 @@ var _ = Describe("diarizerrunner", func() {
 				"/blabbertabber/diarizationResults/fake-uuid/ibm_out",
 			}))
 			Expect(fdr.RunArgsForCall(2)).To(Equal([]string{
-				"ibmjson",
+				"/usr/local/bin/ibmjson",
 				"-in",
-				"/blabbertabber/diarizationResults/fake-uuid/ibm_out/0.json.txt",
+				"/var/blabbertabber/diarizationResults/fake-uuid/ibm_out/0.json.txt",
 				"-out",
-				"/blabbertabber/diarizationResults/fake-uuid/ibm_out.json",
+				"/var/blabbertabber/diarizationResults/fake-uuid/ibm_out.json",
 			}))
 		})
 		Context("when there are no credentials passed", func() {

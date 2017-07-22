@@ -62,10 +62,8 @@ func (r Runner) Run(flavor, meetingUuid string, creds ibmservicecreds.IBMService
 			IBMCmd := []string{
 				"bash",
 				"-c",
-				"echo",
-				fmt.Sprintf("/blabbertabber/soundFiles/%s/meeting.wav", meetingUuid),
-				">",
-				fmt.Sprintf("/blabbertabber/soundFiles/%s/wav_file_list.txt", meetingUuid),
+				fmt.Sprintf("echo /blabbertabber/soundFiles/%s/meeting.wav"+
+					" > /var/blabbertabber/soundFiles/%s/wav_file_list.txt", meetingUuid, meetingUuid),
 			}
 			r.CmdRunner.Run(IBMCmd...)
 			IBMCmd = []string{
@@ -86,11 +84,11 @@ func (r Runner) Run(flavor, meetingUuid string, creds ibmservicecreds.IBMService
 			}
 			r.CmdRunner.Run(IBMCmd...)
 			IBMCmd = []string{
-				"ibmjson",
+				"/usr/local/bin/ibmjson",
 				"-in",
-				fmt.Sprintf("/blabbertabber/diarizationResults/%s/ibm_out/0.json.txt", meetingUuid),
+				fmt.Sprintf("/var/blabbertabber/diarizationResults/%s/ibm_out/0.json.txt", meetingUuid),
 				"-out",
-				fmt.Sprintf("/blabbertabber/diarizationResults/%s/ibm_out.json", meetingUuid),
+				fmt.Sprintf("/var/blabbertabber/diarizationResults/%s/ibm_out.json", meetingUuid),
 			}
 			r.CmdRunner.Run(IBMCmd...)
 		}
