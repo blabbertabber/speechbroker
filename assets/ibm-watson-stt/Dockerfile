@@ -1,5 +1,5 @@
 # This is a Dockerfile of IBM 4 + custom patched file
-#  - only 1 alternative (i.e. no alternatives, just one version)
+#  - only 1 transcription version (alternative) (i.e. no alternatives, just one version)
 #  - enable diarization
 #  - don't worry about continuous (streaming)/interim results
 

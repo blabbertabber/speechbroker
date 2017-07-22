@@ -60,20 +60,35 @@ func (r Runner) Run(flavor, meetingUuid string, creds ibmservicecreds.IBMService
 				return errors.New("invalid IBM creds")
 			}
 			IBMCmd := []string{
+				"bash",
+				"-c",
+				fmt.Sprintf("echo /blabbertabber/soundFiles/%s/meeting.wav"+
+					" > /var/blabbertabber/soundFiles/%s/wav_file_list.txt", meetingUuid, meetingUuid),
+			}
+			r.CmdRunner.Run(IBMCmd...)
+			IBMCmd = []string{
 				"docker",
 				"run",
 				"--volume=/var/blabbertabber:/blabbertabber",
 				"blabbertabber/ibm-watson-stt",
 				"python",
-				"/sttClient.py",
+				"/speech-to-text-websockets-python/sttClient.py",
 				"-credentials",
 				creds.Username + ":" + creds.Password,
 				"-model",
 				"en-US_NarrowbandModel",
 				"-in",
-				fmt.Sprintf("/blabbertabber/soundFiles/%s/meeting.wav", meetingUuid),
+				fmt.Sprintf("/blabbertabber/soundFiles/%s/wav_file_list.txt", meetingUuid),
 				"-out",
-				fmt.Sprintf("/blabbertabber/diarizationResults/%s", meetingUuid),
+				fmt.Sprintf("/blabbertabber/diarizationResults/%s/ibm_out", meetingUuid),
+			}
+			r.CmdRunner.Run(IBMCmd...)
+			IBMCmd = []string{
+				"/usr/local/bin/ibmjson",
+				"-in",
+				fmt.Sprintf("/var/blabbertabber/diarizationResults/%s/ibm_out/0.json.txt", meetingUuid),
+				"-out",
+				fmt.Sprintf("/var/blabbertabber/diarizationResults/%s/ibm_out.json", meetingUuid),
 			}
 			r.CmdRunner.Run(IBMCmd...)
 		}
