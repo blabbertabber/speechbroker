@@ -55,6 +55,7 @@ type Handler struct {
 	Runner          diarizerrunner.DiarizerRunner
 	SoundRootDir    string
 	ResultsRootDir  string
+	WaitForDiarizer bool
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -131,5 +132,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		wg.Done()
 	}()
-	wg.Wait()
+	if h.WaitForDiarizer {
+		wg.Wait()
+	} // tests need to wait but production should return immediately
 }

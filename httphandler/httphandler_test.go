@@ -71,6 +71,7 @@ var _ = Describe("Httphandler", func() {
 			Runner:          fdr,
 			SoundRootDir:    "/a/b",
 			ResultsRootDir:  "/c/d",
+			WaitForDiarizer: true,
 		}
 
 		frc := fakeReadCloser("--" + boundary + "\r\n" +
