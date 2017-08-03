@@ -36,7 +36,7 @@ listed here in `/etc/`
 ### Prerequisites
 
 ```bash
-sudo dnf install vim git docker nginx python golang htop
+sudo dnf install vim git nginx python golang htop
 ```
 
 disable selinux (it's the biggest goddamn pain in the butt)
@@ -52,6 +52,15 @@ vim /etc/sysconfig/selinux
 
 ```
 sudo shutdown -r now
+```
+
+Install docker
+
+```
+sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+sudo dnf makecache fast
+sudo dnf remove docker docker-common; sudo shutdown -r now # if you have previously installed Fedora's version
+sudo dnf install docker-ce
 ```
 
 ### preparation for `acme-tiny`
@@ -271,7 +280,7 @@ mkdir go
 go get github.com/blabbertabber/speechbroker/
 go build github.com/blabbertabber/speechbroker
 go build github.com/blabbertabber/speechbroker/ibmjson
-sudo cp speechbroker ibm_json /usr/local/bin/
+sudo cp speechbroker ibmjson /usr/local/bin/
 sudo chown diarizer:diarizer /usr/local/bin/speechbroker
  # the following is bad; should have other ways to set uid
 sudo chown diarizer:diarizer /usr/local/bin/speechbroker
