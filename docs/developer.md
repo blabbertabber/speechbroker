@@ -24,11 +24,13 @@ ssh -i /c/Users/saint/.ssh/id_github saintbrendan@test.diarizer.com
 cd $GOPATH/src/github.com/blabbertabber/speechbroker
 git pull -r
 go build
+sudo setcap cap_setgid+ep speechbroker
 sudo systemctl stop diarizer.service
 sudo -u diarizer ./speechbroker -ibmServiceCredsPath=/etc/ibm_service_creds.json
  # run BlabberTabber, upload file, check output -- .txt files there?
  # if not, debug and repeat
 sudo cp speechbroker /usr/local/bin/
+sudo setcap cap_setgid+ep /usr/local/bin/speechbroker
 sudo systemctl start diarizer.service
 ```
 
@@ -40,11 +42,13 @@ ssh -i /c/Users/saint/.ssh/id_github saintbrendan@diarizer.com
 cd $GOPATH/src/github.com/blabbertabber/speechbroker
 git pull -r
 go build
+sudo setcap cap_setgid+ep speechbroker
 sudo systemctl stop diarizer.service
 sudo -u diarizer ./speechbroker -ibmServiceCredsPath=/etc/ibm_service_creds.json
  # run BlabberTabber, upload file, check output -- .txt files there?
  # if not, debug and repeat
 sudo cp speechbroker /usr/local/bin/
+sudo setcap cap_setgid+ep /usr/local/bin/speechbroker
 sudo systemctl start diarizer.service
 ```
 

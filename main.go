@@ -15,7 +15,10 @@ import (
 	"github.com/blabbertabber/speechbroker/ibmservicecreds"
 	"log"
 	"net/http"
+	"os/user"
 	"path/filepath"
+	"strconv"
+	"syscall"
 )
 
 const CLEAR_PORT = ":8080" // for troubleshooting in cleartext
@@ -33,6 +36,8 @@ func main() {
 	if err != nil {
 		panic("I couldn't read the IBM service creds: " + *ibmServiceCredsPath + ", error: " + err.Error())
 	}
+	// must be in `docker` group to run containers for docker-ce
+	setDockerGroup()
 
 	h := httphandler.Handler{
 		IBMServiceCreds: ibmServiceCreds,
@@ -51,4 +56,19 @@ func main() {
 
 	}()
 	log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(SSL_PORT), *certPath, *keyPath, nil))
+}
+func setDockerGroup() {
+	dockerGroup, err := user.LookupGroup("docker")
+	if err != nil {
+		log.Println("I couldn't lookup the group 'docker', error: " + err.Error())
+		return
+	}
+	gid, err := strconv.Atoi(dockerGroup.Gid)
+	if err != nil {
+		panic("I couldn't convert '" + dockerGroup.Gid + "' to integer, error: " + err.Error())
+	}
+	err = syscall.Setgroups([]int{gid})
+	if err != nil {
+		panic("I couldn't setGroups() to 'docker', make sure I'm in the docker group in /etc/group, error: " + err.Error())
+	}
 }
