@@ -41,7 +41,7 @@ sudo dnf install vim git nginx python golang htop
 
 disable selinux (it's the biggest goddamn pain in the butt)
 
-```
+```bash
 vim /etc/sysconfig/selinux
 ```
 
@@ -50,17 +50,81 @@ vim /etc/sysconfig/selinux
 +SELINUX=permissive
 ```
 
-```
+```bash
 sudo shutdown -r now
 ```
 
 Install docker
 
-```
+```bash
 sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
 sudo dnf makecache fast
 sudo dnf remove docker docker-common; sudo shutdown -r now # if you have previously installed Fedora's version
 sudo dnf install docker-ce
+sudo systemctl enable docker.service
+sudo groupadd --system docker
+sudo usermod -aG docker cunnie
+sudo usermod -aG docker diarizer
+sudo shutdown -r now
+```
+
+Disable firewall. Note that we `mask` rather than `disable`. _I believe_ that's
+because Docker goes rogue and brings up the firewall when started.
+
+```bash
+sudo systemctl stop firewalld; sudo systemctl mask firewalld
+```
+
+And, since we are an NTP server, we modify `/etc/chrony.conf`:
+
+```diff
++# When making changes:
++#   sudo systemctl restart chronyd.service
++# Status
++#   echo -e "tracking\nsources\nsourcestats" | chronyc
++# Use google's time servers
++pool time1.google.com iburst
++pool time2.google.com iburst
++pool time3.google.com iburst
++pool time4.google.com iburst
+
++allow
+
++clientloglimit 16777216
+
++log measurements statistics tracking
++
++# latency tweaks (probably not necessary)
++sched_priority 1
++lock_all
+```
+
+And then restart:
+
+```bash
+sudo systemctl restart chronyd.service
+```
+
+The combination of Docker with NTP-server-with-many-clients will exhaust
+the connection-tracking that Docker enables, which will disrupt clients with
+the following kernel message (`/var/log/messages`):
+
+```
+nf_conntrack: table full, dropping packet
+```
+
+The fix is tricky; first we need to bump the kernel's number of connections,
+but that is not enough: the difficulty is that the boot process attempts to
+set the number of connections _before_ the `nf_conntrack` module is loaded, and
+fails. When the module is loaded much later as a result of `dockerd` starting,
+it defaults to the too-small default setting of 65,536. Our solution is to set both the
+`sysctl` setting _and_ force the module to be loaded on boot:
+
+```bash
+
+echo nf_conntrack | sudo tee /etc/modules-load.d/nf_conntrack.conf
+echo br_netfilter | sudo tee /etc/modules-load.d/br_netfilter.conf
+export SYS=/etc/sysctl.conf; grep conntrack $SYS || ( echo 'net.netfilter.nf_conntrack_max = 524288' | sudo tee -a $SYS )
 ```
 
 ### preparation for `acme-tiny`
@@ -232,15 +296,6 @@ Copy keys (letsencrypt.key & diarizer.com) into LastPass
 
 ### Prep Upload Server
 
-Install Docker
-```
-sudo systemctl enable docker.service
-sudo groupadd --system docker
-sudo usermod -aG docker cunnie
-sudo usermod -aG docker diarizer
-sudo shutdown -r now
-```
-
 Create directories and run test
 ```
 sudo mkdir -p /var/blabbertabber/soundFiles
@@ -294,6 +349,13 @@ Privacy Policy (7 days, prune anything older than 6 days = 24 * 60 * 6 = 8640 mi
 line to `/etc/crontab`
 ```bash
 23 0 *  *  *  * diarizer   find /var/blabbertabber/soundFiles/ -name '*-*-*-*' -type d -mmin +8640 -exec rm -rf {} \;
+23 0 *  *  *  * diarizer   docker system prune --all --force
+```
+
+Fix ``
+```bash
+export SYS=/etc/sysctl.d/99-sysctl.conf; grep -q conntrack $SYS ||
+  ( echo 'net.netfilter.nf_conntrack_max = 524288' | sudo tee -a $SYS )
 ```
 
 
