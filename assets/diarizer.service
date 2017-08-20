@@ -1,10 +1,14 @@
 [Unit]
 Description=Diarizer server which diarizes files uploaded to it
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
 ExecStart=/usr/local/bin/speechbroker -ibmServiceCredsPath=/etc/ibm_service_creds.json
 Restart=always
-           
+User=diarizer
+Group=diarizer
+
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target

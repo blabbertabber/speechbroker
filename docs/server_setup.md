@@ -334,15 +334,13 @@ cd
 mkdir go
 go get github.com/blabbertabber/speechbroker/
 go build github.com/blabbertabber/speechbroker
-go build github.com/blabbertabber/speechbroker/ibmjson
-sudo cp speechbroker ibmjson /usr/local/bin/
-sudo chown diarizer:diarizer /usr/local/bin/speechbroker
- # the following is bad; should have other ways to set uid
-sudo chown diarizer:diarizer /usr/local/bin/speechbroker
-sudo chmod 6755 /usr/local/bin/speechbroker
-sudo cp assets/diarizer.service /etc/systemd/system/
+go build -o /tmp/ibmjson github.com/blabbertabber/speechbroker/ibmjson
+sudo cp speechbroker /tmp/ibmjson /usr/local/bin/
+sudo setcap cap_setgid+ep /usr/local/bin/speechbroker
+sudo cp assets/diarizer.service /usr/lib/systemd/system/
+echo enable diarizer.service | sudo tee /usr/lib/systemd/system-preset/50-diarizer.preset
 sudo systemctl daemon-reload
-sudo systemctl enable --now diarizer.service
+sudo systemctl enable --now --system diarizer.service
 ```
 
 Privacy Policy (7 days, prune anything older than 6 days = 24 * 60 * 6 = 8640 minutes). Append the following
