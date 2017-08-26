@@ -6,6 +6,8 @@ groups:
 - name: BlabberTabber
   jobs:
   - unit
+  - production-server
+  - test-server
 
 jobs:
 - name: unit
@@ -23,9 +25,44 @@ jobs:
       - name: src
       run:
         path: src/ci/tasks/test-unit.sh
+- name: production-server
+  plan:
+  - {get: src, trigger: true}
+  - {get: 6h,  trigger: true}
+  - task: upload-file
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: blabbertabber/golang-ginko
+      inputs:
+      - name: src
+      run:
+        path: curl
+        args: [ "-F", "meeting.wav=@/dev/null", "https://diarizer.com:9443/api/v1/upload" ]
+- name: test-server
+  plan:
+  - {get: src, trigger: true}
+  - {get: 6h,  trigger: true}
+  - task: upload-file
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: blabbertabber/golang-ginko
+      inputs:
+      - name: src
+      run:
+        path: curl
+        args: [ "-F", "meeting.wav=@/dev/null", "http://test.diarizer.com:8080/api/v1/upload" ]
 
 resources:
 - name: src
   type: git
   source:
     uri: https://github.com/blabbertabber/speechbroker
+- name: 6h
+  type: time
+  source: {interval: 6h}
