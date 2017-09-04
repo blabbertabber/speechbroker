@@ -1,5 +1,5 @@
 // ibmservicecreds converts JSON-formtted IBM creds into a Golang struct
-package speedfactor
+package speedfactors
 
 import (
 	"encoding/json"
@@ -8,19 +8,19 @@ import (
 	"os"
 )
 
-type Speedfactor struct {
+type Speedfactors struct {
 	Diarizer    map[string]float64 `json:"diarizer"`
 	Transcriber map[string]float64 `json:"transcriber"`
 }
 
-func ReadCredsFromPath(path string) (Speedfactor, error) {
+func ReadCredsFromPath(path string) (Speedfactors, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return Speedfactor{}, err
+		return Speedfactors{}, err
 	}
 	return ReadCredsFromReader(file)
 }
-func ReadCredsFromReader(r io.Reader) (creds Speedfactor, err error) {
+func ReadCredsFromReader(r io.Reader) (creds Speedfactors, err error) {
 	buf := []byte{}
 	buf, err = ioutil.ReadAll(r)
 	if err != nil {

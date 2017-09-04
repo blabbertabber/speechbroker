@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/blabbertabber/speechbroker/diarizerrunner"
 	"github.com/blabbertabber/speechbroker/ibmservicecreds"
+	"github.com/blabbertabber/speechbroker/speedfactors"
 	"github.com/google/uuid"
 	"io"
 	"net/http"
@@ -50,6 +51,7 @@ func (FileSystemReal) Copy(dst io.Writer, src io.Reader) (int64, error) {
 
 type Handler struct {
 	IBMServiceCreds ibmservicecreds.IBMServiceCreds
+	Speedfactors    speedfactors.Speedfactors
 	Uuid            Uuid
 	FileSystem      FileSystem
 	Runner          diarizerrunner.DiarizerRunner

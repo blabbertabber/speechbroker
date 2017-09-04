@@ -1,4 +1,4 @@
-package speedfactor_test
+package speedfactors_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -9,5 +9,5 @@ import (
 
 func TestSpeedfactor(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Speedfactor Suite")
+	RunSpecs(t, "Speedfactors Suite")
 }

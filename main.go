@@ -13,6 +13,7 @@ import (
 	"github.com/blabbertabber/speechbroker/diarizerrunner"
 	"github.com/blabbertabber/speechbroker/httphandler"
 	"github.com/blabbertabber/speechbroker/ibmservicecreds"
+	"github.com/blabbertabber/speechbroker/speedfactors"
 	"log"
 	"net/http"
 	"os/user"
@@ -27,6 +28,8 @@ const SSL_PORT = ":9443"
 func main() {
 	var ibmServiceCredsPath = flag.String("ibmServiceCredsPath", "",
 		"pathname to JSON-formatted IBM Bluemix Watson Speech to Text service credentials")
+	var speedfactorsPath = flag.String("speedfactorsPath", "",
+		"pathname to JSON-formatted hash of speech processing time factors")
 	var keyPath = flag.String("keyPath", "/etc/pki/nginx/private/server.key", "path to HTTPS private key")
 	var certPath = flag.String("certPath", "/etc/pki/nginx/server.crt", "path to HTTPS certificate")
 
@@ -36,11 +39,16 @@ func main() {
 	if err != nil {
 		panic("I couldn't read the IBM service creds: " + *ibmServiceCredsPath + ", error: " + err.Error())
 	}
+	speedfactors, err := speedfactors.ReadCredsFromPath(*speedfactorsPath)
+	if err != nil {
+		panic("I couldn't read the Speech processing time factors: " + *speedfactorsPath + ", error: " + err.Error())
+	}
 	// must be in `docker` group to run containers for docker-ce
 	setDockerGroup()
 
 	h := httphandler.Handler{
 		IBMServiceCreds: ibmServiceCreds,
+		Speedfactors:    speedfactors,
 		Uuid:            httphandler.UuidReal{},
 		FileSystem:      httphandler.FileSystemReal{},
 		Runner: diarizerrunner.Runner{
