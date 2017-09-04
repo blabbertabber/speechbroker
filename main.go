@@ -13,19 +13,18 @@ import (
 	"github.com/blabbertabber/speechbroker/diarizerrunner"
 	"github.com/blabbertabber/speechbroker/httphandler"
 	"github.com/blabbertabber/speechbroker/ibmservicecreds"
+	"github.com/blabbertabber/speechbroker/setdockergroup"
 	"github.com/blabbertabber/speechbroker/speedfactors"
 	"log"
 	"net/http"
-	"os/user"
 	"path/filepath"
-	"strconv"
-	"syscall"
 )
 
 const CLEAR_PORT = ":8080" // for troubleshooting in cleartext
 const SSL_PORT = ":9443"
 
 func main() {
+	log.Println("speechbroker started.")
 	var ibmServiceCredsPath = flag.String("ibmServiceCredsPath", "",
 		"pathname to JSON-formatted IBM Bluemix Watson Speech to Text service credentials")
 	var speedfactorsPath = flag.String("speedfactorsPath", "",
@@ -44,7 +43,7 @@ func main() {
 		panic("I couldn't read the Speech processing time factors: " + *speedfactorsPath + ", error: " + err.Error())
 	}
 	// must be in `docker` group to run containers for docker-ce
-	setDockerGroup()
+	setdockergroup.SetDockerGroup()
 
 	h := httphandler.Handler{
 		IBMServiceCreds: ibmServiceCreds,
@@ -64,19 +63,4 @@ func main() {
 
 	}()
 	log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(SSL_PORT), *certPath, *keyPath, nil))
-}
-func setDockerGroup() {
-	dockerGroup, err := user.LookupGroup("docker")
-	if err != nil {
-		log.Println("I couldn't lookup the group 'docker', error: " + err.Error())
-		return
-	}
-	gid, err := strconv.Atoi(dockerGroup.Gid)
-	if err != nil {
-		panic("I couldn't convert '" + dockerGroup.Gid + "' to integer, error: " + err.Error())
-	}
-	err = syscall.Setgroups([]int{gid})
-	if err != nil {
-		panic("I couldn't setGroups() to 'docker', make sure I'm in the docker group in /etc/group, error: " + err.Error())
-	}
 }
