@@ -314,7 +314,7 @@ sudo -u diarizer \
                 -o /blabbertabber/diarizationResults/3426dfcc-fe5f-4686-9279-d997ef9fb0da/results.txt
 ```
 
-Download the IBM Bluemix Watson Speech to Text Service Credentials and copy into `/etc`
+Download the IBM Bluemix Watson Speech to Text Service Credentials and copy into `/etc/speechbroker`
 
 * Log into Bluemix
 * Click on the upper-left hamburger
@@ -325,7 +325,8 @@ Download the IBM Bluemix Watson Speech to Text Service Credentials and copy into
 * copy credentials into clipboard
 
 ```
-sudo tee /etc/ibm_service_creds.json # paste from clipboard and hit enter+^D
+sudo mkdir /etc/speechbroker
+sudo tee /etc/speechbroker/ibm_service_creds.json # paste from clipboard and hit enter+^D
 ```
 
 Install service
@@ -341,6 +342,13 @@ sudo cp assets/diarizer.service /usr/lib/systemd/system/
 echo enable diarizer.service | sudo tee /usr/lib/systemd/system-preset/50-diarizer.preset
 sudo systemctl daemon-reload
 sudo systemctl enable --now --system diarizer.service
+```
+
+Copy the transcription/diarization speed factors file into place (if you're
+on the test server, the source file name is `speedfactors-test.json`):
+
+```
+sudo cp assets/speedfactors.json /etc/speechbroker/speedfactors.json
 ```
 
 Privacy Policy (7 days, prune anything older than 6 days = 24 * 60 * 6 = 8640 minutes). Append the following

@@ -26,7 +26,9 @@ git pull -r
 go build
 sudo setcap cap_setgid+ep speechbroker
 sudo systemctl stop diarizer.service
-sudo -u diarizer ./speechbroker -ibmServiceCredsPath=/etc/ibm_service_creds.json
+sudo -u diarizer ./speechbroker \
+    -ibmServiceCredsPath=/etc/speechbroker/ibm_service_creds.json \
+    -speedfactorsPath=/etc/speechbroker/speedfactors.json
  # run BlabberTabber, upload file, check output -- .txt files there?
  # if not, debug and repeat
 sudo cp speechbroker /usr/local/bin/
@@ -44,7 +46,9 @@ git pull -r
 go build
 sudo setcap cap_setgid+ep speechbroker
 sudo systemctl stop diarizer.service
-sudo -u diarizer ./speechbroker -ibmServiceCredsPath=/etc/ibm_service_creds.json
+sudo -u diarizer ./speechbroker \
+    -ibmServiceCredsPath=/etc/speechbroker/ibm_service_creds.json \
+    -speedfactorsPath=/etc/speechbroker/speedfactors.json
  # run BlabberTabber, upload file, check output -- .txt files there?
  # if not, debug and repeat
 sudo cp speechbroker /usr/local/bin/

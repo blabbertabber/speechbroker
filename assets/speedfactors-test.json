@@ -1,0 +1,10 @@
+{
+  "diarizer": {
+    "IBM": 2.4,
+    "Aalto": 1.0
+  },
+  "transcriber": {
+    "IBM": 2.4,
+    "CMUSphinx4": 16.0
+  }
+}

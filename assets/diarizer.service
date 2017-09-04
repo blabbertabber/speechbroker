@@ -5,7 +5,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/speechbroker -ibmServiceCredsPath=/etc/ibm_service_creds.json
+ExecStart=/usr/local/bin/speechbroker -ibmServiceCredsPath=/etc/speechbroker/ibm_service_creds.json -speedfactorsPath=/etc/speechbroker/speedfactors.json
 Restart=always
 User=diarizer
 Group=diarizer
