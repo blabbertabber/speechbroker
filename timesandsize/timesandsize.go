@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"time"
+	"os"
 )
 
 type TimesAndSize struct {
@@ -33,6 +34,17 @@ func (tas *TimesAndSize) WriteTimesAndSizeToWriter(w io.Writer) {
 	buf := bytes.NewBuffer(b)
 	_, err = buf.WriteTo(w)
 	if err != nil {
+		panic(err)
+	}
+}
+
+func (tas *TimesAndSize) WriteTimesAndSizeToPath(tasPath string) {
+	file, err := os.Create(tasPath)
+	if err != nil {
+		panic(err)
+	}
+	tas.WriteTimesAndSizeToWriter(file)
+	if err = file.Close(); err != nil {
 		panic(err)
 	}
 }
