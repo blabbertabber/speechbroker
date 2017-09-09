@@ -6,16 +6,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"time"
 	"os"
+	"time"
 )
 
 type TimesAndSize struct {
-	WaveFileSizeInByte               int      `json:"wav_file_size_in_bytes"`
+	WaveFileSizeInBytes              int      `json:"wav_file_size_in_bytes"`
 	Diarizer                         string   `json:"diarizer"`
 	Transcriber                      string   `json:"transcriber"`
 	EstimatedDiarizationFinishTime   JSONTime `json:"estimated_diarization_finish_time"`
 	EstimatedTranscriptionFinishTime JSONTime `json:"estimated_transcription_finish_time"`
+	DiarizationProcessingRatio       float64  `json:"diarization_processing_ratio"`
+	TranscriptionProcessingRatio     float64  `json:"transcription_processing_ratio"`
 }
 
 type JSONTime time.Time
