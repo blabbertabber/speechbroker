@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"io/ioutil"
 	"strings"
+	"time"
 )
 
 var _ = Describe("Speedfactors", func() {
@@ -66,5 +67,26 @@ var _ = Describe("Speedfactors", func() {
 			})
 		})
 	})
-
+	Context("EstimatedDiarizationTime", func() {
+		It("calculates the expected diarization time based on file size", func() {
+			sf := Speedfactors{
+				Diarizer: map[string]float64{
+					"Aalto": 0.5,
+				},
+			}
+			// 32,000 bytes/second, 10-minute file is 19,200,000
+			Expect(sf.EstimatedDiarizationTime("Aalto", 19200000)).To(Equal(time.Minute.Seconds() * 5))
+		})
+	})
+	Context("EstimatedTranscriptionTime", func() {
+		It("calculates the expected transcription time based on file size", func() {
+			sf := Speedfactors{
+				Transcriber: map[string]float64{
+					"CMUSphinx4": 8.0,
+				},
+			}
+			// 32,000 bytes/second, 10-minute file is 19,200,000
+			Expect(sf.EstimatedTranscriptionTime("CMUSphinx4", 19200000)).To(Equal(time.Minute.Seconds() * 80))
+		})
+	})
 })

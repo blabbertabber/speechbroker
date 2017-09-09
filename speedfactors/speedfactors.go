@@ -3,6 +3,7 @@ package speedfactors
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -31,4 +32,20 @@ func ReadCredsFromReader(r io.Reader) (creds Speedfactors, err error) {
 		panic(err)
 	}
 	return creds, err
+}
+
+func (sf Speedfactors) EstimatedDiarizationTime(diarizer string, soundFileSizeinBytes int) float64 {
+	if val, ok := sf.Diarizer[diarizer]; ok {
+		return val * float64(soundFileSizeinBytes) / 32000.0
+	} else {
+		panic(fmt.Sprintf("I couldn't find Diarizer[\"%s\"]!", diarizer))
+	}
+}
+
+func (sf Speedfactors) EstimatedTranscriptionTime(transcriber string, soundFileSizeinBytes int) float64 {
+	if val, ok := sf.Transcriber[transcriber]; ok {
+		return val * float64(soundFileSizeinBytes) / 32000.0
+	} else {
+		panic(fmt.Sprintf("I couldn't find Transcriber[\"%s\"]!", transcriber))
+	}
 }
