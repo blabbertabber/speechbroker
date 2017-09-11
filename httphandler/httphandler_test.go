@@ -7,12 +7,15 @@ import (
 	"github.com/blabbertabber/speechbroker/diarizerrunner/diarizerrunnerfakes"
 	"github.com/blabbertabber/speechbroker/httphandler/httphandlerfakes"
 	"github.com/blabbertabber/speechbroker/ibmservicecreds"
+	"github.com/blabbertabber/speechbroker/speedfactors"
+	"github.com/blabbertabber/speechbroker/timesandsize/timesandsizefakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 )
 
 type fakeWriter struct {
@@ -51,7 +54,8 @@ var _ = Describe("Httphandler", func() {
 	var fw *fakeWriter
 	var ffs *httphandlerfakes.FakeFileSystem
 	var fdr *diarizerrunnerfakes.FakeDiarizerRunner
-	//var frc *fakeReadCloser
+	var ftas *timesandsizefakes.FakeTimesAndSizeToPath
+	var ffi *httphandlerfakes.FakeFileInfo
 	var boundary = "ILoveMyDogCherieSheIsSoWarmAndCuddly"
 
 	BeforeEach(func() {
@@ -61,17 +65,32 @@ var _ = Describe("Httphandler", func() {
 		ffs.MkdirAllReturns(nil)
 		ffs.CreateReturns(os.Create("/dev/null"))
 		fdr = new(diarizerrunnerfakes.FakeDiarizerRunner)
+		ftas = new(timesandsizefakes.FakeTimesAndSizeToPath)
+		ffi = new(httphandlerfakes.FakeFileInfo)
+		ffi.SizeReturns(65536)
+		ffs.StatReturns(ffi, nil)
 
 		fakeUuid.GetUuidReturns("fake-uuid")
 
 		handler = Handler{
-			Uuid:            fakeUuid,
 			IBMServiceCreds: ibmservicecreds.IBMServiceCreds{},
-			FileSystem:      ffs,
-			Runner:          fdr,
-			SoundRootDir:    "/a/b",
-			ResultsRootDir:  "/c/d",
-			WaitForDiarizer: true,
+			Speedfactors: speedfactors.Speedfactors{
+				Diarizer: map[string]float64{
+					"Aalto": 0.5,
+					"IBM":   2.4,
+				},
+				Transcriber: map[string]float64{
+					"CMUSphinx4": 8.0,
+					"IBM":        2.4,
+				},
+			},
+			Uuid:               fakeUuid,
+			FileSystem:         ffs,
+			TimesAndSizeToPath: ftas,
+			Runner:             fdr,
+			SoundRootDir:       "/a/b",
+			ResultsRootDir:     "/c/d",
+			WaitForDiarizer:    true,
 		}
 
 		frc := fakeReadCloser("--" + boundary + "\r\n" +
@@ -137,6 +156,29 @@ var _ = Describe("Httphandler", func() {
 				Expect(func() { handler.ServeHTTP(fw, r) }).To(Panic())
 			})
 		})
+		Context("when it's checking the size of the upload .wav file", func() {
+			It("should .Stat() the file for the size", func() {
+				handler.ServeHTTP(fw, r)
+				Expect(ffs.StatCallCount()).To(Equal(1))
+				Expect(ffs.StatArgsForCall(0)).To(Equal("/a/b/fake-uuid/meeting.wav"))
+			})
+			Context("When .Stat() returns an error", func() {
+				BeforeEach(func() {
+					ffs.StatReturns(nil, errors.New("I couldn't Stat()!"))
+				})
+				It("should panic()", func() {
+					Expect(func() { handler.ServeHTTP(fw, r) }).To(Panic())
+				})
+			})
+		})
+		Context("when it's writing the 'times_and_sizes' JSON file", func() {
+			It("should call WriteTimesAndSizeToPath()", func() {
+				handler.ServeHTTP(fw, r)
+				Expect(ftas.WriteTimesAndSizeToPathCallCount()).To(Equal(1))
+				_, path := ftas.WriteTimesAndSizeToPathArgsForCall(0)
+				Expect(path).To(Equal("/c/d/fake-uuid/times_and_size.json"))
+			})
+		})
 		Context("when using Aalto + CMU Sphinx", func() {
 			It("send the correct value to the client", func() {
 				handler.ServeHTTP(fw, r)
@@ -159,6 +201,16 @@ var _ = Describe("Httphandler", func() {
 						panic("I have no idea what action this should be: " + action)
 					}
 				}
+				tas, path := ftas.WriteTimesAndSizeToPathArgsForCall(0)
+				Expect(path).To(Equal("/c/d/fake-uuid/times_and_size.json"))
+				Expect(time.Time(time.Time(tas.EstimatedDiarizationFinishTime)).Round(time.Millisecond)).To(Equal(
+					time.Now().Add(
+						handler.Speedfactors.EstimatedDiarizationTime("Aalto", 65536)).
+						Round(time.Millisecond)))
+				Expect(time.Time(time.Time(tas.EstimatedTranscriptionFinishTime)).Round(time.Millisecond)).To(Equal(
+					time.Now().Add(
+						handler.Speedfactors.EstimatedTranscriptionTime("CMUSphinx4", 65536)).
+						Round(time.Millisecond)))
 			})
 		})
 		Context("when using IBM for both transcription and Diarization", func() {

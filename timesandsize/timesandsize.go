@@ -10,8 +10,13 @@ import (
 	"time"
 )
 
+// `counterfeiter timesandsize/timesandsize.go TimesAndSizeToPath`
+type TimesAndSizeToPath interface {
+	WriteTimesAndSizeToPath(*TimesAndSize, string)
+}
+
 type TimesAndSize struct {
-	WaveFileSizeInBytes              int      `json:"wav_file_size_in_bytes"`
+	WaveFileSizeInBytes              int64    `json:"wav_file_size_in_bytes"`
 	Diarizer                         string   `json:"diarizer"`
 	Transcriber                      string   `json:"transcriber"`
 	EstimatedDiarizationFinishTime   JSONTime `json:"estimated_diarization_finish_time"`
@@ -40,7 +45,7 @@ func (tas *TimesAndSize) WriteTimesAndSizeToWriter(w io.Writer) {
 	}
 }
 
-func (tas *TimesAndSize) WriteTimesAndSizeToPath(tasPath string) {
+func WriteTimesAndSizeToPath(tas *TimesAndSize, tasPath string) {
 	file, err := os.Create(tasPath)
 	if err != nil {
 		panic(err)

@@ -38,7 +38,7 @@ func main() {
 	if err != nil {
 		panic("I couldn't read the IBM service creds: " + *ibmServiceCredsPath + ", error: " + err.Error())
 	}
-	speedfactors, err := speedfactors.ReadCredsFromPath(*speedfactorsPath)
+	speedFactors, err := speedfactors.ReadCredsFromPath(*speedfactorsPath)
 	if err != nil {
 		panic("I couldn't read the Speech processing time factors: " + *speedfactorsPath + ", error: " + err.Error())
 	}
@@ -47,7 +47,7 @@ func main() {
 
 	h := httphandler.Handler{
 		IBMServiceCreds: ibmServiceCreds,
-		Speedfactors:    speedfactors,
+		Speedfactors:    speedFactors,
 		Uuid:            httphandler.UuidReal{},
 		FileSystem:      httphandler.FileSystemReal{},
 		Runner: diarizerrunner.Runner{

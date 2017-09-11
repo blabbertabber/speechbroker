@@ -75,7 +75,7 @@ var _ = Describe("Speedfactors", func() {
 				},
 			}
 			// 32,000 bytes/second, 10-minute file is 19,200,000
-			Expect(sf.EstimatedDiarizationTime("Aalto", 19200000)).To(Equal(time.Minute.Seconds() * 5))
+			Expect(sf.EstimatedDiarizationTime("Aalto", 19200000)).To(Equal(time.Minute * 5))
 		})
 	})
 	Context("EstimatedTranscriptionTime", func() {
@@ -86,7 +86,7 @@ var _ = Describe("Speedfactors", func() {
 				},
 			}
 			// 32,000 bytes/second, 10-minute file is 19,200,000
-			Expect(sf.EstimatedTranscriptionTime("CMUSphinx4", 19200000)).To(Equal(time.Minute.Seconds() * 80))
+			Expect(sf.EstimatedTranscriptionTime("CMUSphinx4", 19200000)).To(Equal(time.Minute * 80))
 		})
 	})
 })
