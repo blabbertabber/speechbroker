@@ -69,7 +69,7 @@ var _ = Describe("TimesAndSize", func() {
 
 				defer os.Remove(tmpfile.Name()) // clean up
 
-				tas.WriteTimesAndSizeToPath(tmpfile.Name())
+				WriteTimesAndSizeToPath(&tas, tmpfile.Name())
 
 				jsonread, err := ioutil.ReadFile(tmpfile.Name())
 				if err != nil {

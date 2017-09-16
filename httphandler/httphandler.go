@@ -7,6 +7,7 @@ import (
 	"github.com/blabbertabber/speechbroker/diarizerrunner"
 	"github.com/blabbertabber/speechbroker/ibmservicecreds"
 	"github.com/blabbertabber/speechbroker/speedfactors"
+	"github.com/blabbertabber/speechbroker/timesandsize"
 	"github.com/google/uuid"
 	"io"
 	"net/http"
@@ -28,11 +29,13 @@ func (u UuidReal) GetUuid() string {
 	return uuid.New().String()
 }
 
+// `counterfeiter  -o httphandler/httphandlerfakes/fake_file_info.go os.FileInfo`
 // `counterfeiter httphandler/httphandler.go FileSystem`
 type FileSystem interface {
 	MkdirAll(string, os.FileMode) error
 	Create(string) (*os.File, error)
 	Copy(io.Writer, io.Reader) (int64, error)
+	Stat(string) (os.FileInfo, error)
 }
 
 type FileSystemReal struct{}
@@ -49,15 +52,20 @@ func (FileSystemReal) Copy(dst io.Writer, src io.Reader) (int64, error) {
 	return io.Copy(dst, src)
 }
 
+func (FileSystemReal) Stat(path string) (os.FileInfo, error) {
+	return os.Stat(path)
+}
+
 type Handler struct {
-	IBMServiceCreds ibmservicecreds.IBMServiceCreds
-	Speedfactors    speedfactors.Speedfactors
-	Uuid            Uuid
-	FileSystem      FileSystem
-	Runner          diarizerrunner.DiarizerRunner
-	SoundRootDir    string
-	ResultsRootDir  string
-	WaitForDiarizer bool
+	IBMServiceCreds    ibmservicecreds.IBMServiceCreds
+	Speedfactors       speedfactors.Speedfactors
+	Uuid               Uuid
+	FileSystem         FileSystem
+	TimesAndSizeToPath timesandsize.TimesAndSizeToPath
+	Runner             diarizerrunner.DiarizerRunner
+	SoundRootDir       string
+	ResultsRootDir     string
+	WaitForDiarizer    bool
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -88,7 +96,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	for {
 		part, err := reader.NextPart()
-		time.Sleep(time.Second)
 		// the 2nd portion ("|| err.Error() == ...") is to make the tests work; it shouldn't be necessary
 		if err != nil && (err == io.EOF || err.Error() == "multipart: NextPart: EOF") {
 			break
@@ -119,6 +126,21 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		panic(err.Error())
 	}
 	dst.Close()
+
+	wavFileInfo, err := h.FileSystem.Stat(filepath.Join(soundDir, "meeting.wav"))
+	if err != nil {
+		panic(err.Error())
+	}
+	tas := timesandsize.TimesAndSize{
+		WaveFileSizeInBytes:              wavFileInfo.Size(),
+		Diarizer:                         diarizer,
+		Transcriber:                      transcriber,
+		EstimatedDiarizationFinishTime:   timesandsize.JSONTime(time.Now().Add(h.Speedfactors.EstimatedDiarizationTime(diarizer, wavFileInfo.Size()))),
+		EstimatedTranscriptionFinishTime: timesandsize.JSONTime(time.Now().Add(h.Speedfactors.EstimatedTranscriptionTime(transcriber, wavFileInfo.Size()))),
+		DiarizationProcessingRatio:       0,
+		TranscriptionProcessingRatio:     0,
+	}
+	h.TimesAndSizeToPath.WriteTimesAndSizeToPath(&tas, filepath.Join(resultsDir, "times_and_size.json"))
 
 	// sync.WaitGroup accommodates our testing requirements
 	wg := new(sync.WaitGroup)

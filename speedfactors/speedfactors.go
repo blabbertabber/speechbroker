@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"time"
 )
 
 type Speedfactors struct {
@@ -34,17 +35,18 @@ func ReadCredsFromReader(r io.Reader) (creds Speedfactors, err error) {
 	return creds, err
 }
 
-func (sf Speedfactors) EstimatedDiarizationTime(diarizer string, soundFileSizeinBytes int) float64 {
+// the following functions return time.Duration whose underlying type is int64 (nanosecs),
+func (sf Speedfactors) EstimatedDiarizationTime(diarizer string, soundFileSizeinBytes int64) time.Duration {
 	if val, ok := sf.Diarizer[diarizer]; ok {
-		return val * float64(soundFileSizeinBytes) / 32000.0
+		return time.Duration(int64(val*float64(soundFileSizeinBytes)*1e9) / 32000)
 	} else {
 		panic(fmt.Sprintf("I couldn't find Diarizer[\"%s\"]!", diarizer))
 	}
 }
 
-func (sf Speedfactors) EstimatedTranscriptionTime(transcriber string, soundFileSizeinBytes int) float64 {
+func (sf Speedfactors) EstimatedTranscriptionTime(transcriber string, soundFileSizeinBytes int64) time.Duration {
 	if val, ok := sf.Transcriber[transcriber]; ok {
-		return val * float64(soundFileSizeinBytes) / 32000.0
+		return time.Duration(int64(val*float64(soundFileSizeinBytes)*1e9) / 32000)
 	} else {
 		panic(fmt.Sprintf("I couldn't find Transcriber[\"%s\"]!", transcriber))
 	}
