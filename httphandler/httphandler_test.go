@@ -16,6 +16,7 @@ import (
 	"net/url"
 	"os"
 	"time"
+	"path/filepath"
 )
 
 type fakeWriter struct {
@@ -160,7 +161,8 @@ var _ = Describe("Httphandler", func() {
 			It("should .Stat() the file for the size", func() {
 				handler.ServeHTTP(fw, r)
 				Expect(ffs.StatCallCount()).To(Equal(1))
-				Expect(ffs.StatArgsForCall(0)).To(Equal("/a/b/fake-uuid/meeting.wav"))
+				expectedMeetingWavFilePath := filepath.FromSlash("/a/b/fake-uuid/meeting.wav")
+				Expect(ffs.StatArgsForCall(0)).To(Equal(expectedMeetingWavFilePath))
 			})
 			Context("When .Stat() returns an error", func() {
 				BeforeEach(func() {
@@ -176,7 +178,8 @@ var _ = Describe("Httphandler", func() {
 				handler.ServeHTTP(fw, r)
 				Expect(ftas.WriteTimesAndSizeToPathCallCount()).To(Equal(1))
 				_, path := ftas.WriteTimesAndSizeToPathArgsForCall(0)
-				Expect(path).To(Equal("/c/d/fake-uuid/times_and_size.json"))
+				expectedTimesSizeFilePath := filepath.FromSlash("/c/d/fake-uuid/times_and_size.json")
+				Expect(path).To(Equal(expectedTimesSizeFilePath))
 			})
 		})
 		Context("when using Aalto + CMU Sphinx", func() {
@@ -202,7 +205,8 @@ var _ = Describe("Httphandler", func() {
 					}
 				}
 				tas, path := ftas.WriteTimesAndSizeToPathArgsForCall(0)
-				Expect(path).To(Equal("/c/d/fake-uuid/times_and_size.json"))
+				expectedTimesSizeFilePath := filepath.FromSlash("/c/d/fake-uuid/times_and_size.json")
+				Expect(path).To(Equal(expectedTimesSizeFilePath))
 				Expect(time.Time(time.Time(tas.EstimatedDiarizationFinishTime)).Round(time.Millisecond)).To(Equal(
 					time.Now().Add(
 						handler.Speedfactors.EstimatedDiarizationTime("Aalto", 65536)).
