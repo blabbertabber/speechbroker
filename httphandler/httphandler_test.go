@@ -15,8 +15,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"time"
 	"path/filepath"
+	"time"
 )
 
 type fakeWriter struct {
@@ -207,14 +207,14 @@ var _ = Describe("Httphandler", func() {
 				tas, path := ftas.WriteTimesAndSizeToPathArgsForCall(0)
 				expectedTimesSizeFilePath := filepath.FromSlash("/c/d/fake-uuid/times_and_size.json")
 				Expect(path).To(Equal(expectedTimesSizeFilePath))
-				Expect(time.Time(time.Time(tas.EstimatedDiarizationFinishTime)).Round(time.Millisecond)).To(Equal(
+				Expect(time.Time(time.Time(tas.EstimatedDiarizationFinishTime)).Round(time.Millisecond * 10)).To(Equal(
 					time.Now().Add(
 						handler.Speedfactors.EstimatedDiarizationTime("Aalto", 65536)).
-						Round(time.Millisecond)))
-				Expect(time.Time(time.Time(tas.EstimatedTranscriptionFinishTime)).Round(time.Millisecond)).To(Equal(
+						Round(time.Millisecond * 10)))
+				Expect(time.Time(time.Time(tas.EstimatedTranscriptionFinishTime)).Round(time.Millisecond * 10)).To(Equal(
 					time.Now().Add(
 						handler.Speedfactors.EstimatedTranscriptionTime("CMUSphinx4", 65536)).
-						Round(time.Millisecond)))
+						Round(time.Millisecond * 10)))
 			})
 		})
 		Context("when using IBM for both transcription and Diarization", func() {
