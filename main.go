@@ -22,9 +22,10 @@ import (
 
 const CLEAR_PORT = ":8080" // for troubleshooting in cleartext
 const SSL_PORT = ":9443"
+const VERSION = "1.0.1"
 
 func main() {
-	log.Println("speechbroker started.")
+	log.Println("speechbroker version" + VERSION + "started")
 	var ibmServiceCredsPath = flag.String("ibmServiceCredsPath", "",
 		"pathname to JSON-formatted IBM Bluemix Watson Speech to Text service credentials")
 	var speedfactorsPath = flag.String("speedfactorsPath", "",
