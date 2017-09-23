@@ -25,7 +25,7 @@ const SSL_PORT = ":9443"
 const VERSION = "1.0.1"
 
 func main() {
-	log.Println("speechbroker version" + VERSION + "started")
+	log.Println("speechbroker version " + VERSION + " started")
 	var ibmServiceCredsPath = flag.String("ibmServiceCredsPath", "",
 		"pathname to JSON-formatted IBM Bluemix Watson Speech to Text service credentials")
 	var speedfactorsPath = flag.String("speedfactorsPath", "",
