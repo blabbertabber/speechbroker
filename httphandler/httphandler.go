@@ -34,6 +34,8 @@ func (u UuidReal) GetUuid() string {
 type FileSystem interface {
 	MkdirAll(string, os.FileMode) error
 	Create(string) (*os.File, error)
+	// like Create(), but with a distinct Writer, for tests
+	CreateWriter(string) (*os.File, io.Writer, error)
 	Copy(io.Writer, io.Reader) (int64, error)
 	Stat(string) (os.FileInfo, error)
 }
@@ -48,6 +50,11 @@ func (FileSystemReal) Create(name string) (*os.File, error) {
 	return os.Create(name)
 }
 
+func (FileSystemReal) CreateWriter(name string) (*os.File, io.Writer, error) {
+	fh, err := os.Create(name)
+	return fh, io.Writer(fh), err
+}
+
 func (FileSystemReal) Copy(dst io.Writer, src io.Reader) (int64, error) {
 	return io.Copy(dst, src)
 }
@@ -57,15 +64,14 @@ func (FileSystemReal) Stat(path string) (os.FileInfo, error) {
 }
 
 type Handler struct {
-	IBMServiceCreds    ibmservicecreds.IBMServiceCreds
-	Speedfactors       speedfactors.Speedfactors
-	Uuid               Uuid
-	FileSystem         FileSystem
-	TimesAndSizeToPath timesandsize.TimesAndSizeToPath
-	Runner             diarizerrunner.DiarizerRunner
-	SoundRootDir       string
-	ResultsRootDir     string
-	WaitForDiarizer    bool
+	IBMServiceCreds ibmservicecreds.IBMServiceCreds
+	Speedfactors    speedfactors.Speedfactors
+	Uuid            Uuid
+	FileSystem      FileSystem
+	Runner          diarizerrunner.DiarizerRunner
+	SoundRootDir    string
+	ResultsRootDir  string
+	WaitForDiarizer bool
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -89,7 +95,9 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err.Error())
 	}
-	dst.Close()
+	if err = dst.Close(); err != nil {
+		panic(err)
+	}
 	reader, err := r.MultipartReader()
 	if err != nil {
 		panic(err.Error())
@@ -117,7 +125,9 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err.Error())
 	}
-	dst.Close()
+	if err = dst.Close(); err != nil {
+		panic(err)
+	}
 	// return weblink to client "https://diarizer.blabbertabber.com/UUID"
 	justTheHost := strings.Split(r.Host, ":")[0]
 	w.Write([]byte(fmt.Sprintf("https://%s?meeting=%s", justTheHost, meetingUuid)))
@@ -125,22 +135,32 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err.Error())
 	}
-	dst.Close()
+	if err = dst.Close(); err != nil {
+		panic(err)
+	}
 
 	wavFileInfo, err := h.FileSystem.Stat(filepath.Join(soundDir, "meeting.wav"))
 	if err != nil {
 		panic(err.Error())
 	}
-	tas := timesandsize.TimesAndSize{
+	timesAndSizeToPath := timesandsize.TimesAndSize{
 		WaveFileSizeInBytes:              wavFileInfo.Size(),
 		Diarizer:                         diarizer,
 		Transcriber:                      transcriber,
-		EstimatedDiarizationFinishTime:   timesandsize.JSONTime(time.Now().Add(h.Speedfactors.EstimatedDiarizationTime(diarizer, wavFileInfo.Size()))),
-		EstimatedTranscriptionFinishTime: timesandsize.JSONTime(time.Now().Add(h.Speedfactors.EstimatedTranscriptionTime(transcriber, wavFileInfo.Size()))),
 		DiarizationProcessingRatio:       0,
 		TranscriptionProcessingRatio:     0,
+		EstimatedDiarizationFinishTime:   time.Now().Add(h.Speedfactors.EstimatedDiarizationTime(diarizer, wavFileInfo.Size())),
+		EstimatedTranscriptionFinishTime: time.Now().Add(h.Speedfactors.EstimatedTranscriptionTime(transcriber, wavFileInfo.Size())),
 	}
-	h.TimesAndSizeToPath.WriteTimesAndSizeToPath(&tas, filepath.Join(resultsDir, "times_and_size.json"))
+
+	dst, writer, err := h.FileSystem.CreateWriter(filepath.Join(resultsDir, "times_and_size.json"))
+	if err != nil {
+		panic(err)
+	}
+	timesAndSizeToPath.WriteTimesAndSize(writer)
+	if err = dst.Close(); err != nil {
+		panic(err)
+	}
 
 	// sync.WaitGroup accommodates our testing requirements
 	wg := new(sync.WaitGroup)
