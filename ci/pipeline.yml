@@ -40,7 +40,14 @@ jobs:
       - name: src
       run:
         path: curl
-        args: [ "-F", "meeting.wav=@/dev/null", "https://diarizer.com:9443/api/v1/upload" ]
+        args:
+        - "-F"
+        - "meeting.wav=@/dev/null"
+        - "-H"
+        - "diarizer:Aalto"
+        - "-H"
+        - "transcriber:CMUSphinx4"
+        - "https://diarizer.com:9443/api/v1/upload"
 - name: test-server
   plan:
   - {get: src, trigger: true}
@@ -56,8 +63,14 @@ jobs:
       - name: src
       run:
         path: curl
-        args: [ "-F", "meeting.wav=@/dev/null", "http://test.diarizer.com:8080/api/v1/upload" ]
-
+        args:
+        - "-F"
+        - "meeting.wav=@/dev/null"
+        - "-H"
+        - "diarizer:Aalto"
+        - "-H"
+        - "transcriber:CMUSphinx4"
+        - "http://test.diarizer.com:8080/api/v1/upload"
 resources:
 - name: src
   type: git
