@@ -38,7 +38,7 @@ func ReadCredsFromReader(r io.Reader) (creds Speedfactors, err error) {
 // the following functions return time.Duration whose underlying type is int64 (nanosecs),
 func (sf Speedfactors) EstimatedDiarizationTime(diarizer string, soundFileSizeinBytes int64) time.Duration {
 	if val, ok := sf.Diarizer[diarizer]; ok {
-		return time.Duration(int64(val*float64(soundFileSizeinBytes)*1e9) / 32000)
+		return meetingLength(int64(val * float64(soundFileSizeinBytes)))
 	} else {
 		panic(fmt.Sprintf("I couldn't find Diarizer[\"%s\"]!", diarizer))
 	}
@@ -46,8 +46,16 @@ func (sf Speedfactors) EstimatedDiarizationTime(diarizer string, soundFileSizein
 
 func (sf Speedfactors) EstimatedTranscriptionTime(transcriber string, soundFileSizeinBytes int64) time.Duration {
 	if val, ok := sf.Transcriber[transcriber]; ok {
-		return time.Duration(int64(val*float64(soundFileSizeinBytes)*1e9) / 32000)
+		return meetingLength(int64(val * float64(soundFileSizeinBytes)))
 	} else {
 		panic(fmt.Sprintf("I couldn't find Transcriber[\"%s\"]!", transcriber))
 	}
+}
+
+func ProcessingRatio(start time.Time, finish time.Time, meetingWaveFileSize int64) float64 {
+	return float64(finish.Sub(start)) / float64((meetingLength(meetingWaveFileSize)))
+}
+
+func meetingLength(soundFileSizeinBytes int64) time.Duration {
+	return time.Duration(soundFileSizeinBytes * 1e9 / 32000)
 }
