@@ -3,12 +3,14 @@ package httphandler_test
 import (
 	. "github.com/blabbertabber/speechbroker/httphandler"
 
+	"bytes"
+	"encoding/json"
 	"errors"
 	"github.com/blabbertabber/speechbroker/diarizerrunner/diarizerrunnerfakes"
 	"github.com/blabbertabber/speechbroker/httphandler/httphandlerfakes"
 	"github.com/blabbertabber/speechbroker/ibmservicecreds"
 	"github.com/blabbertabber/speechbroker/speedfactors"
-	"github.com/blabbertabber/speechbroker/timesandsize/timesandsizefakes"
+	"github.com/blabbertabber/speechbroker/timesandsize"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"io"
@@ -50,25 +52,34 @@ func (frc *fakeReadCloser) Close() error {
 
 var _ = Describe("Httphandler", func() {
 
+	var miscWriter *bytes.Buffer
 	var handler Handler
 	var r *http.Request
 	var fw *fakeWriter
 	var ffs *httphandlerfakes.FakeFileSystem
 	var fdr *diarizerrunnerfakes.FakeDiarizerRunner
-	var ftas *timesandsizefakes.FakeTimesAndSizeToPath
 	var ffi *httphandlerfakes.FakeFileInfo
 	var boundary = "ILoveMyDogCherieSheIsSoWarmAndCuddly"
 
 	BeforeEach(func() {
+		miscWriter = bytes.NewBuffer([]byte{})
 		fakeUuid := new(httphandlerfakes.FakeUuid)
 		fakeUuid.GetUuidReturns("fake-uuid")
 		ffs = new(httphandlerfakes.FakeFileSystem)
 		ffs.MkdirAllReturns(nil)
-		ffs.CreateReturns(os.Create("/dev/null"))
+		// create distinct file handles for each os.Create()
+		for i := 0; i < 3; i++ {
+			fh, err := os.Create(os.DevNull)
+			if err != nil {
+				panic(err)
+			}
+			ffs.CreateReturnsOnCall(i, fh, nil)
+		}
+		fh, err := os.Create(os.DevNull)
+		ffs.CreateWriterReturns(fh, miscWriter, err)
 		fdr = new(diarizerrunnerfakes.FakeDiarizerRunner)
-		ftas = new(timesandsizefakes.FakeTimesAndSizeToPath)
 		ffi = new(httphandlerfakes.FakeFileInfo)
-		ffi.SizeReturns(65536)
+		ffi.SizeReturns(38400000) // 20 minutes = 32000 bytes/sec * 60 * 20
 		ffs.StatReturns(ffi, nil)
 
 		fakeUuid.GetUuidReturns("fake-uuid")
@@ -77,7 +88,7 @@ var _ = Describe("Httphandler", func() {
 			IBMServiceCreds: ibmservicecreds.IBMServiceCreds{},
 			Speedfactors: speedfactors.Speedfactors{
 				Diarizer: map[string]float64{
-					"Aalto": 0.5,
+					"Aalto": 0.6,
 					"IBM":   2.4,
 				},
 				Transcriber: map[string]float64{
@@ -85,13 +96,12 @@ var _ = Describe("Httphandler", func() {
 					"IBM":        2.4,
 				},
 			},
-			Uuid:               fakeUuid,
-			FileSystem:         ffs,
-			TimesAndSizeToPath: ftas,
-			Runner:             fdr,
-			SoundRootDir:       "/a/b",
-			ResultsRootDir:     "/c/d",
-			WaitForDiarizer:    true,
+			Uuid:            fakeUuid,
+			FileSystem:      ffs,
+			Runner:          fdr,
+			SoundRootDir:    "/a/b",
+			ResultsRootDir:  "/c/d",
+			WaitForDiarizer: true,
 		}
 
 		frc := fakeReadCloser("--" + boundary + "\r\n" +
@@ -142,13 +152,13 @@ var _ = Describe("Httphandler", func() {
 		})
 		Context("when it's unable to create a file", func() {
 			It("should panic", func() {
-				ffs.CreateReturns(nil, errors.New("create file"))
+				ffs.CreateReturnsOnCall(0, nil, errors.New("create file"))
 				Expect(func() { handler.ServeHTTP(fw, r) }).To(Panic())
 			})
 		})
 		Context("when it's unable to create the second file", func() {
 			It("should panic", func() {
-				fakefile, err := os.Create("/dev/null")
+				fakefile, err := os.Create(os.DevNull)
 				if err != nil {
 					panic(err.Error())
 				}
@@ -157,29 +167,19 @@ var _ = Describe("Httphandler", func() {
 				Expect(func() { handler.ServeHTTP(fw, r) }).To(Panic())
 			})
 		})
-		Context("when it's checking the size of the upload .wav file", func() {
-			It("should .Stat() the file for the size", func() {
-				handler.ServeHTTP(fw, r)
-				Expect(ffs.StatCallCount()).To(Equal(1))
-				expectedMeetingWavFilePath := filepath.FromSlash("/a/b/fake-uuid/meeting.wav")
-				Expect(ffs.StatArgsForCall(0)).To(Equal(expectedMeetingWavFilePath))
-			})
-			Context("When .Stat() returns an error", func() {
-				BeforeEach(func() {
-					ffs.StatReturns(nil, errors.New("I couldn't Stat()!"))
-				})
-				It("should panic()", func() {
-					Expect(func() { handler.ServeHTTP(fw, r) }).To(Panic())
-				})
-			})
-		})
 		Context("when it's writing the 'times_and_sizes' JSON file", func() {
-			It("should call WriteTimesAndSizeToPath()", func() {
+			It("should call WriteTimesAndSize()", func() {
 				handler.ServeHTTP(fw, r)
-				Expect(ftas.WriteTimesAndSizeToPathCallCount()).To(Equal(1))
-				_, path := ftas.WriteTimesAndSizeToPathArgsForCall(0)
-				expectedTimesSizeFilePath := filepath.FromSlash("/c/d/fake-uuid/times_and_size.json")
-				Expect(path).To(Equal(expectedTimesSizeFilePath))
+				Expect(ffs.CreateWriterCallCount()).To(Equal(1))
+				Expect(ffs.CreateWriterArgsForCall(0)).To(Equal(filepath.FromSlash("/c/d/fake-uuid/times_and_size.json")))
+				regex := `{` +
+					`"wav_file_size_in_bytes":38400000,"diarizer":"Aalto","transcriber":"CMUSphinx4",` +
+					`"diarization_processing_ratio":0,` +
+					`"transcription_processing_ratio":0,` +
+					`"estimated_diarization_finish_time":".*",` +
+					`"estimated_transcription_finish_time":".*"` +
+					`}`
+				Expect(miscWriter.String()).To(MatchRegexp(regex))
 			})
 		})
 		Context("when using Aalto + CMU Sphinx", func() {
@@ -204,17 +204,33 @@ var _ = Describe("Httphandler", func() {
 						panic("I have no idea what action this should be: " + action)
 					}
 				}
-				tas, path := ftas.WriteTimesAndSizeToPathArgsForCall(0)
-				expectedTimesSizeFilePath := filepath.FromSlash("/c/d/fake-uuid/times_and_size.json")
-				Expect(path).To(Equal(expectedTimesSizeFilePath))
-				Expect(time.Time(time.Time(tas.EstimatedDiarizationFinishTime)).Round(time.Millisecond * 10)).To(Equal(
-					time.Now().Add(
-						handler.Speedfactors.EstimatedDiarizationTime("Aalto", 65536)).
-						Round(time.Millisecond * 10)))
-				Expect(time.Time(time.Time(tas.EstimatedTranscriptionFinishTime)).Round(time.Millisecond * 10)).To(Equal(
-					time.Now().Add(
-						handler.Speedfactors.EstimatedTranscriptionTime("CMUSphinx4", 65536)).
-						Round(time.Millisecond * 10)))
+				tas := timesandsize.TimesAndSize{}
+				if err := json.Unmarshal(miscWriter.Bytes(), &tas); err != nil {
+					panic(err)
+				}
+				Expect(tas.WaveFileSizeInBytes).To(Equal(int64(38400000)))
+				// calculate delta by hand: 1200s meeting takes 720s to diarize
+				// we subtract 1/2 second before rounding to make it reliably pass
+				Expect(time.Time(tas.EstimatedDiarizationFinishTime)).
+					To(Equal(time.Now().Add(time.Second * 720).Add(time.Millisecond * -500).
+						Round(time.Second)))
+				// Same expectation, but instead of calculating by hand we run
+				// the calculations through the functions (maybe this is overkill).
+				Expect(time.Time(tas.EstimatedDiarizationFinishTime)).
+					To(Equal(time.Now().Add(
+						handler.Speedfactors.EstimatedDiarizationTime("Aalto", tas.WaveFileSizeInBytes)).
+						Add(time.Millisecond * -500).
+						Round(time.Second)))
+				// calculate by hand
+				Expect(time.Time(tas.EstimatedTranscriptionFinishTime)).
+					To(Equal(time.Now().Add(time.Second * 9600).Add(time.Millisecond * -500).
+						Round(time.Second)))
+				// calculate by function
+				Expect(time.Time(tas.EstimatedTranscriptionFinishTime)).
+					To(Equal(time.Now().Add(
+						handler.Speedfactors.EstimatedTranscriptionTime("CMUSphinx4", tas.WaveFileSizeInBytes)).
+						Add(time.Millisecond * -500).
+						Round(time.Second)))
 			})
 		})
 		Context("when using IBM for both transcription and Diarization", func() {

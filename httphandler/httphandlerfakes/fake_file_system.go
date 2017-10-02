@@ -35,6 +35,21 @@ type FakeFileSystem struct {
 		result1 *os.File
 		result2 error
 	}
+	CreateWriterStub        func(string) (*os.File, io.Writer, error)
+	createWriterMutex       sync.RWMutex
+	createWriterArgsForCall []struct {
+		arg1 string
+	}
+	createWriterReturns struct {
+		result1 *os.File
+		result2 io.Writer
+		result3 error
+	}
+	createWriterReturnsOnCall map[int]struct {
+		result1 *os.File
+		result2 io.Writer
+		result3 error
+	}
 	CopyStub        func(io.Writer, io.Reader) (int64, error)
 	copyMutex       sync.RWMutex
 	copyArgsForCall []struct {
@@ -166,6 +181,60 @@ func (fake *FakeFileSystem) CreateReturnsOnCall(i int, result1 *os.File, result2
 	}{result1, result2}
 }
 
+func (fake *FakeFileSystem) CreateWriter(arg1 string) (*os.File, io.Writer, error) {
+	fake.createWriterMutex.Lock()
+	ret, specificReturn := fake.createWriterReturnsOnCall[len(fake.createWriterArgsForCall)]
+	fake.createWriterArgsForCall = append(fake.createWriterArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("CreateWriter", []interface{}{arg1})
+	fake.createWriterMutex.Unlock()
+	if fake.CreateWriterStub != nil {
+		return fake.CreateWriterStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
+	}
+	return fake.createWriterReturns.result1, fake.createWriterReturns.result2, fake.createWriterReturns.result3
+}
+
+func (fake *FakeFileSystem) CreateWriterCallCount() int {
+	fake.createWriterMutex.RLock()
+	defer fake.createWriterMutex.RUnlock()
+	return len(fake.createWriterArgsForCall)
+}
+
+func (fake *FakeFileSystem) CreateWriterArgsForCall(i int) string {
+	fake.createWriterMutex.RLock()
+	defer fake.createWriterMutex.RUnlock()
+	return fake.createWriterArgsForCall[i].arg1
+}
+
+func (fake *FakeFileSystem) CreateWriterReturns(result1 *os.File, result2 io.Writer, result3 error) {
+	fake.CreateWriterStub = nil
+	fake.createWriterReturns = struct {
+		result1 *os.File
+		result2 io.Writer
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeFileSystem) CreateWriterReturnsOnCall(i int, result1 *os.File, result2 io.Writer, result3 error) {
+	fake.CreateWriterStub = nil
+	if fake.createWriterReturnsOnCall == nil {
+		fake.createWriterReturnsOnCall = make(map[int]struct {
+			result1 *os.File
+			result2 io.Writer
+			result3 error
+		})
+	}
+	fake.createWriterReturnsOnCall[i] = struct {
+		result1 *os.File
+		result2 io.Writer
+		result3 error
+	}{result1, result2, result3}
+}
+
 func (fake *FakeFileSystem) Copy(arg1 io.Writer, arg2 io.Reader) (int64, error) {
 	fake.copyMutex.Lock()
 	ret, specificReturn := fake.copyReturnsOnCall[len(fake.copyArgsForCall)]
@@ -276,6 +345,8 @@ func (fake *FakeFileSystem) Invocations() map[string][][]interface{} {
 	defer fake.mkdirAllMutex.RUnlock()
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
+	fake.createWriterMutex.RLock()
+	defer fake.createWriterMutex.RUnlock()
 	fake.copyMutex.RLock()
 	defer fake.copyMutex.RUnlock()
 	fake.statMutex.RLock()
