@@ -13,8 +13,8 @@ var _ = Describe("TimesAndSize", func() {
 	Context(".WriteTimesAndSize", func() {
 		Context("When a writer is called on a valid TimesAndSize struct", func() {
 			It("writes out the JSON struct to the writer", func() {
-				const longForm = "Mon Jan 2 15:04:05 -0700 MST 2006"
-				t, err := time.Parse(longForm, "Mon Sep 4 20:49:14 -0700 PDT 2017")
+				const longForm = "Mon Jan 2 15:04:05 -0700 2006"
+				t, err := time.Parse(longForm, "Mon Sep 4 20:49:14 -0700 2017")
 				if err != nil {
 					panic(err)
 				}
