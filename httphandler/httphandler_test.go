@@ -52,7 +52,7 @@ func (frc *fakeReadCloser) Close() error {
 
 var _ = Describe("Httphandler", func() {
 
-	var miscWriter *bytes.Buffer
+	var miscWriter [2]*bytes.Buffer
 	var handler Handler
 	var r *http.Request
 	var fw *fakeWriter
@@ -62,7 +62,6 @@ var _ = Describe("Httphandler", func() {
 	var boundary = "ILoveMyDogCherieSheIsSoWarmAndCuddly"
 
 	BeforeEach(func() {
-		miscWriter = bytes.NewBuffer([]byte{})
 		fakeUuid := new(httphandlerfakes.FakeUuid)
 		fakeUuid.GetUuidReturns("fake-uuid")
 		ffs = new(httphandlerfakes.FakeFileSystem)
@@ -75,8 +74,14 @@ var _ = Describe("Httphandler", func() {
 			}
 			ffs.CreateReturnsOnCall(i, fh, nil)
 		}
-		fh, err := os.Create(os.DevNull)
-		ffs.CreateWriterReturns(fh, miscWriter, err)
+		for i := 0; i < 2; i++ {
+			miscWriter[i] = bytes.NewBuffer([]byte{})
+			fh, err := os.Create(os.DevNull)
+			if err != nil {
+				panic(err)
+			}
+			ffs.CreateWriterReturnsOnCall(i, fh, miscWriter[i], nil)
+		}
 		fdr = new(diarizerrunnerfakes.FakeDiarizerRunner)
 		ffi = new(httphandlerfakes.FakeFileInfo)
 		ffi.SizeReturns(38400000) // 20 minutes = 32000 bytes/sec * 60 * 20
@@ -170,7 +175,7 @@ var _ = Describe("Httphandler", func() {
 		Context("when it's writing the 'times_and_sizes' JSON file", func() {
 			It("should call WriteTimesAndSize()", func() {
 				handler.ServeHTTP(fw, r)
-				Expect(ffs.CreateWriterCallCount()).To(Equal(1))
+				Expect(ffs.CreateWriterCallCount()).To(Equal(2))
 				Expect(ffs.CreateWriterArgsForCall(0)).To(Equal(filepath.FromSlash("/c/d/fake-uuid/times_and_size.json")))
 				regex := `{` +
 					`"wav_file_size_in_bytes":38400000,"diarizer":"Aalto","transcriber":"CMUSphinx4",` +
@@ -179,7 +184,7 @@ var _ = Describe("Httphandler", func() {
 					`"estimated_diarization_finish_time":".*",` +
 					`"estimated_transcription_finish_time":".*"` +
 					`}`
-				Expect(miscWriter.String()).To(MatchRegexp(regex))
+				Expect(miscWriter[0].String()).To(MatchRegexp(regex))
 			})
 		})
 		Context("when using Aalto + CMU Sphinx", func() {
@@ -205,7 +210,7 @@ var _ = Describe("Httphandler", func() {
 					}
 				}
 				tas := timesandsize.TimesAndSize{}
-				if err := json.Unmarshal(miscWriter.Bytes(), &tas); err != nil {
+				if err := json.Unmarshal(miscWriter[0].Bytes(), &tas); err != nil {
 					panic(err)
 				}
 				Expect(tas.WaveFileSizeInBytes).To(Equal(int64(38400000)))
@@ -234,7 +239,6 @@ var _ = Describe("Httphandler", func() {
 			})
 		})
 		Context("when using IBM for both transcription and Diarization", func() {
-			//r.Header.Set("Transcriber", "IBM")
 			It("invokes Docker but once", func() {
 				r.Header.Del("Diarizer")
 				r.Header.Add("Diarizer", "IBM")
