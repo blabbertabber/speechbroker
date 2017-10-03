@@ -20,9 +20,9 @@ import (
 	"path/filepath"
 )
 
+const VERSION = "1.0.2"
 const CLEAR_PORT = ":8080" // for troubleshooting in cleartext
 const SSL_PORT = ":9443"
-const VERSION = "1.0.1"
 
 func main() {
 	log.Println("speechbroker version " + VERSION + " started")
