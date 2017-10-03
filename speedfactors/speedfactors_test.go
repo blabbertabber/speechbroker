@@ -89,4 +89,12 @@ var _ = Describe("Speedfactors", func() {
 			Expect(sf.EstimatedTranscriptionTime("CMUSphinx4", 19200000)).To(Equal(time.Minute * 80))
 		})
 	})
+	Context("ProcessingRatio", func() {
+		It("Returns the ratio of the length of processing to length of meeting", func() {
+			// 60 minutes file, takes 20 minutes to process
+			// Oh yeah baby, accurate to within 0.00000001%!
+			Expect(ProcessingRatio(time.Now(), time.Now().Add(time.Minute*20), 32000*60*60)).
+				Should(BeNumerically("~", 0.33333333333, 0.0000000001))
+		})
+	})
 })

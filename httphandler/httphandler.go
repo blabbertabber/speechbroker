@@ -143,7 +143,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err.Error())
 	}
-	timesAndSizeToPath := timesandsize.TimesAndSize{
+	tas := timesandsize.TimesAndSize{
 		WaveFileSizeInBytes:              wavFileInfo.Size(),
 		Diarizer:                         diarizer,
 		Transcriber:                      transcriber,
@@ -153,20 +153,17 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		EstimatedTranscriptionFinishTime: time.Now().Add(h.Speedfactors.EstimatedTranscriptionTime(transcriber, wavFileInfo.Size())),
 	}
 
-	dst, writer, err := h.FileSystem.CreateWriter(filepath.Join(resultsDir, "times_and_size.json"))
-	if err != nil {
-		panic(err)
-	}
-	timesAndSizeToPath.WriteTimesAndSize(writer)
-	if err = dst.Close(); err != nil {
-		panic(err)
-	}
+	h.writeTimesAndSizes(resultsDir, tas)
 
 	// sync.WaitGroup accommodates our testing requirements
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
+	chDiarizer := make(chan time.Time)
+	chTranscriber := make(chan time.Time)
+	startTime := time.Now()
 	go func() {
 		h.Runner.Run(diarizer, meetingUuid, h.IBMServiceCreds)
+		chDiarizer <- time.Now()
 		wg.Done()
 	}()
 	wg.Add(1)
@@ -174,9 +171,31 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if diarizer != transcriber {
 			h.Runner.Run(transcriber, meetingUuid, h.IBMServiceCreds)
 		}
+		chTranscriber <- time.Now()
+		wg.Done()
+	}()
+	wg.Add(1)
+	go func() {
+		// write out file with actual finish times' processing ratio
+		diarizerFinishTime := <-chDiarizer
+		transcriberFinishTime := <-chTranscriber
+		tas.DiarizationProcessingRatio = speedfactors.ProcessingRatio(startTime, diarizerFinishTime, wavFileInfo.Size())
+		tas.TranscriptionProcessingRatio = speedfactors.ProcessingRatio(startTime, transcriberFinishTime, wavFileInfo.Size())
+		h.writeTimesAndSizes(resultsDir, tas)
 		wg.Done()
 	}()
 	if h.WaitForDiarizer {
 		wg.Wait()
 	} // tests need to wait but production should return immediately
+}
+
+func (h Handler) writeTimesAndSizes(resultsDir string, tas timesandsize.TimesAndSize) {
+	dst, writer, err := h.FileSystem.CreateWriter(filepath.Join(resultsDir, "times_and_size.json"))
+	if err != nil {
+		panic(err)
+	}
+	tas.WriteTimesAndSize(writer)
+	if err = dst.Close(); err != nil {
+		panic(err)
+	}
 }
