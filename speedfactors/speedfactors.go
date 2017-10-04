@@ -3,6 +3,7 @@ package speedfactors
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -36,19 +37,19 @@ func ReadCredsFromReader(r io.Reader) (creds Speedfactors, err error) {
 }
 
 // the following functions return time.Duration whose underlying type is int64 (nanosecs),
-func (sf Speedfactors) EstimatedDiarizationTime(diarizer string, soundFileSizeinBytes int64) time.Duration {
+func (sf Speedfactors) EstimatedDiarizationTime(diarizer string, soundFileSizeinBytes int64) (time.Duration, error) {
 	if val, ok := sf.Diarizer[diarizer]; ok {
-		return meetingLength(int64(val * float64(soundFileSizeinBytes)))
+		return meetingLength(int64(val * float64(soundFileSizeinBytes))), nil
 	} else {
-		panic(fmt.Sprintf("I couldn't find Diarizer[\"%s\"]!", diarizer))
+		return time.Duration(0), errors.New(fmt.Sprintf("I couldn't find Diarizer[\"%s\"]!", diarizer))
 	}
 }
 
-func (sf Speedfactors) EstimatedTranscriptionTime(transcriber string, soundFileSizeinBytes int64) time.Duration {
+func (sf Speedfactors) EstimatedTranscriptionTime(transcriber string, soundFileSizeinBytes int64) (time.Duration, error) {
 	if val, ok := sf.Transcriber[transcriber]; ok {
-		return meetingLength(int64(val * float64(soundFileSizeinBytes)))
+		return meetingLength(int64(val * float64(soundFileSizeinBytes))), nil
 	} else {
-		panic(fmt.Sprintf("I couldn't find Transcriber[\"%s\"]!", transcriber))
+		return time.Duration(0), errors.New(fmt.Sprintf("I couldn't find Transcriber[\"%s\"]!", transcriber))
 	}
 }
 

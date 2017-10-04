@@ -1,10 +1,10 @@
 package main
 
-// curl -F "a=1234" https://test.diarizer.com:9443/api/v1/upload
 // curl -F "meeting.wav=@/dev/null" http://test.diarizer.com:8080/api/v1/upload
 // curl -F "meeting.wav=@/Users/cunnie/Google Drive/BlabberTabber/ICSI-diarizer-sample-meeting.wav" -H "diarizer: Aalto" -H "transcriber: CMUSphinx4" http://test.diarizer.com:8080/api/v1/upload
 // curl -F "meeting.wav=@/Users/cunnie/Google Drive/BlabberTabber/ICSI-diarizer-sample-meeting.wav" -H "diarizer: Aalto" -H "transcriber: CMUSphinx4" https://diarizer.com:9443/api/v1/upload
 // curl --trace - -F "meeting.wav=@/dev/null" http://test.diarizer.com:8080/api/v1/upload
+// curl -v -F "a=1234" http://test.diarizer.com:8080/api/v1/upload # to see "500"
 // cleanup: sudo -u diarizer find /var/blabbertabber -name "*-*-*" -exec rm -rf {} \;
 
 import (
