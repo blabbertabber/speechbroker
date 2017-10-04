@@ -144,21 +144,27 @@ var _ = Describe("Httphandler", func() {
 	Describe("ServeHTTP", func() {
 		Context("when it's unable to create the first directory", func() {
 			It("should panic", func() {
-				ffs.MkdirAllReturns(errors.New("Can't create dir"))
-				Expect(func() { handler.ServeHTTP(fw, r) }).To(Panic())
+				errorTxt := "Can't create dir"
+				ffs.MkdirAllReturns(errors.New(errorTxt))
+				handler.ServeHTTP(fw, r)
+				Expect(fw.Written).To(MatchRegexp(errorTxt))
 			})
 		})
 		Context("when it's unable to create the second directory", func() {
 			It("should panic", func() {
+				errorTxt := "Can't create dir"
 				ffs.MkdirAllReturnsOnCall(0, nil)
-				ffs.MkdirAllReturnsOnCall(1, errors.New("Can't create dir"))
-				Expect(func() { handler.ServeHTTP(fw, r) }).To(Panic())
+				ffs.MkdirAllReturnsOnCall(1, errors.New(errorTxt))
+				handler.ServeHTTP(fw, r)
+				Expect(fw.Written).To(MatchRegexp(errorTxt))
 			})
 		})
 		Context("when it's unable to create a file", func() {
 			It("should panic", func() {
-				ffs.CreateReturnsOnCall(0, nil, errors.New("create file"))
-				Expect(func() { handler.ServeHTTP(fw, r) }).To(Panic())
+				errorTxt := "Can't create file"
+				ffs.CreateReturnsOnCall(0, nil, errors.New(errorTxt))
+				handler.ServeHTTP(fw, r)
+				Expect(fw.Written).To(MatchRegexp(errorTxt))
 			})
 		})
 		Context("when it's unable to create the second file", func() {
@@ -167,9 +173,11 @@ var _ = Describe("Httphandler", func() {
 				if err != nil {
 					panic(err.Error())
 				}
+				errorTxt := "Can't create file"
 				ffs.CreateReturnsOnCall(0, fakefile, nil)
-				ffs.CreateReturnsOnCall(1, nil, errors.New("create file"))
-				Expect(func() { handler.ServeHTTP(fw, r) }).To(Panic())
+				ffs.CreateReturnsOnCall(1, nil, errors.New(errorTxt))
+				handler.ServeHTTP(fw, r)
+				Expect(fw.Written).To(MatchRegexp(errorTxt))
 			})
 		})
 		Context("when it's writing the 'times_and_sizes' JSON file", func() {
@@ -221,9 +229,12 @@ var _ = Describe("Httphandler", func() {
 						Round(time.Second)))
 				// Same expectation, but instead of calculating by hand we run
 				// the calculations through the functions (maybe this is overkill).
+				estElapDiarTime, _ := handler.Speedfactors.EstimatedDiarizationTime("Aalto", tas.WaveFileSizeInBytes)
+				estElapTransTime, _ := handler.Speedfactors.EstimatedTranscriptionTime("CMUSphinx4", tas.WaveFileSizeInBytes)
+
 				Expect(time.Time(tas.EstimatedDiarizationFinishTime)).
-					To(Equal(time.Now().Add(
-						handler.Speedfactors.EstimatedDiarizationTime("Aalto", tas.WaveFileSizeInBytes)).
+					To(Equal(time.Now().
+						Add(estElapDiarTime).
 						Add(time.Millisecond * -500).
 						Round(time.Second)))
 				// calculate by hand
@@ -232,8 +243,8 @@ var _ = Describe("Httphandler", func() {
 						Round(time.Second)))
 				// calculate by function
 				Expect(time.Time(tas.EstimatedTranscriptionFinishTime)).
-					To(Equal(time.Now().Add(
-						handler.Speedfactors.EstimatedTranscriptionTime("CMUSphinx4", tas.WaveFileSizeInBytes)).
+					To(Equal(time.Now().
+						Add(estElapTransTime).
 						Add(time.Millisecond * -500).
 						Round(time.Second)))
 			})

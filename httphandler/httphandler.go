@@ -84,23 +84,28 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	soundDir := filepath.Join(h.SoundRootDir, meetingUuid)
 	err := h.FileSystem.MkdirAll(soundDir, 0777)
 	if err != nil {
-		panic(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	resultsDir := filepath.Join(h.ResultsRootDir, meetingUuid)
 	err = h.FileSystem.MkdirAll(resultsDir, 0777)
 	if err != nil {
-		panic(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	dst, err := h.FileSystem.Create(filepath.Join(resultsDir, "00_upload_begun"))
 	if err != nil {
-		panic(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	if err = dst.Close(); err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	reader, err := r.MultipartReader()
 	if err != nil {
-		panic(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	for {
 		part, err := reader.NextPart()
@@ -109,39 +114,54 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		if err != nil {
-			panic(err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 		dst, err := h.FileSystem.Create(filepath.Join(soundDir, "meeting.wav"))
 		if err != nil {
-			panic(err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 		defer dst.Close()
 
 		if _, err := h.FileSystem.Copy(dst, part); err != nil {
-			panic(err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 	}
 	dst, err = h.FileSystem.Create(filepath.Join(resultsDir, "01_upload_finished"))
 	if err != nil {
-		panic(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	if err = dst.Close(); err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	// return weblink to client "https://diarizer.blabbertabber.com/UUID"
-	justTheHost := strings.Split(r.Host, ":")[0]
-	w.Write([]byte(fmt.Sprintf("https://%s?meeting=%s", justTheHost, meetingUuid)))
 	dst, err = h.FileSystem.Create(filepath.Join(resultsDir, "03_transcription_begun"))
 	if err != nil {
-		panic(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	if err = dst.Close(); err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	wavFileInfo, err := h.FileSystem.Stat(filepath.Join(soundDir, "meeting.wav"))
 	if err != nil {
-		panic(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	estElapDiarTime, err := h.Speedfactors.EstimatedDiarizationTime(diarizer, wavFileInfo.Size())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	estElapTransTime, err := h.Speedfactors.EstimatedTranscriptionTime(transcriber, wavFileInfo.Size())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	tas := timesandsize.TimesAndSize{
 		WaveFileSizeInBytes:              wavFileInfo.Size(),
@@ -149,10 +169,9 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Transcriber:                      transcriber,
 		DiarizationProcessingRatio:       0,
 		TranscriptionProcessingRatio:     0,
-		EstimatedDiarizationFinishTime:   time.Now().Add(h.Speedfactors.EstimatedDiarizationTime(diarizer, wavFileInfo.Size())),
-		EstimatedTranscriptionFinishTime: time.Now().Add(h.Speedfactors.EstimatedTranscriptionTime(transcriber, wavFileInfo.Size())),
+		EstimatedDiarizationFinishTime:   time.Now().Add(estElapDiarTime),
+		EstimatedTranscriptionFinishTime: time.Now().Add(estElapTransTime),
 	}
-
 	h.writeTimesAndSizes(resultsDir, tas)
 
 	// sync.WaitGroup accommodates our testing requirements
@@ -187,15 +206,19 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if h.WaitForDiarizer {
 		wg.Wait()
 	} // tests need to wait but production should return immediately
+	// return weblink to client "https://diarizer.blabbertabber.com/UUID"
+	justTheHost := strings.Split(r.Host, ":")[0]
+	w.Write([]byte(fmt.Sprintf("https://%s?meeting=%s", justTheHost, meetingUuid)))
 }
 
-func (h Handler) writeTimesAndSizes(resultsDir string, tas timesandsize.TimesAndSize) {
+func (h Handler) writeTimesAndSizes(resultsDir string, tas timesandsize.TimesAndSize) error {
 	dst, writer, err := h.FileSystem.CreateWriter(filepath.Join(resultsDir, "times_and_size.json"))
 	if err != nil {
-		panic(err)
+		return (err)
 	}
 	tas.WriteTimesAndSize(writer)
 	if err = dst.Close(); err != nil {
-		panic(err)
+		return (err)
 	}
+	return nil
 }
