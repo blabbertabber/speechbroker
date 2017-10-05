@@ -67,7 +67,7 @@ var _ = Describe("Httphandler", func() {
 		ffs = new(httphandlerfakes.FakeFileSystem)
 		ffs.MkdirAllReturns(nil)
 		// create distinct file handles for each os.Create()
-		for i := 0; i < 3; i++ {
+		for i := 0; i < 5; i++ {
 			fh, err := os.Create(os.DevNull)
 			if err != nil {
 				panic(err)

@@ -182,6 +182,13 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	go func() {
 		h.Runner.Run(diarizer, meetingUuid, h.IBMServiceCreds)
+		dst, err = h.FileSystem.Create(filepath.Join(resultsDir, "04_diarization_finished"))
+		if err != nil {
+			panic(err.Error())
+		}
+		if err = dst.Close(); err != nil {
+			panic(err.Error())
+		}
 		chDiarizer <- time.Now()
 		wg.Done()
 	}()
@@ -189,6 +196,13 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		if diarizer != transcriber {
 			h.Runner.Run(transcriber, meetingUuid, h.IBMServiceCreds)
+		}
+		dst, err = h.FileSystem.Create(filepath.Join(resultsDir, "05_transcription_finished"))
+		if err != nil {
+			panic(err.Error())
+		}
+		if err = dst.Close(); err != nil {
+			panic(err.Error())
 		}
 		chTranscriber <- time.Now()
 		wg.Done()
