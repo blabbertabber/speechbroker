@@ -92,6 +92,7 @@ func (r Runner) Run(flavor, meetingUuid string, creds ibmservicecreds.IBMService
 			}
 			r.CmdRunner.Run(IBMCmd...)
 		}
+	case "null":
 	default:
 		{
 			err = errors.New(fmt.Sprintf("No such back-end: \"%s\"", flavor))

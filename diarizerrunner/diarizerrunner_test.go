@@ -96,6 +96,12 @@ var _ = Describe("diarizerrunner", func() {
 			})
 		})
 	})
+	Context("When the runner is \"null\"", func() {
+		It("doesn't do anything", func() {
+			Expect(r.Run("null", "fake-uuid", creds)).To(BeNil())
+			Expect(fdr.RunCallCount()).To(Equal(0))
+		})
+	})
 	Context("When the runner is \"non-existent\"", func() {
 		It("panics", func() {
 			Expect(r.Run("non-existent", "fake-uuid", creds)).To(Equal(errors.New("No such back-end: \"non-existent\"")))

@@ -34,6 +34,7 @@ var _ = Describe("Speedfactors", func() {
 					Transcriber: map[string]float64{
 						"IBM":        2.4,
 						"CMUSphinx4": 8.0,
+						"null":       0.0,
 					},
 				}
 				readCreds, err := ReadCredsFromReader(sourceReader)
@@ -55,6 +56,7 @@ var _ = Describe("Speedfactors", func() {
 					Transcriber: map[string]float64{
 						"IBM":        2.4,
 						"CMUSphinx4": 8.0,
+						"null":       0.0,
 					},
 				}
 				Expect(readCreds).To(Equal(expectation))

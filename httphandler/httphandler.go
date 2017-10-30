@@ -78,7 +78,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// `diarizer` and `transcriber` _must_ match what the Android client sends
 	// e.g.  https://github.com/blabbertabber/blabbertabber/blob/fea98684ad500380ef347cff584821ee52098c1e/app/src/main/java/com/blabbertabber/blabbertabber/RecordingActivity.java#L386-L392
 	diarizer := r.Header.Get("Diarizer")       // "IBM" or "Aalto"
-	transcriber := r.Header.Get("Transcriber") // "IBM" or "CMUSphinx4"
+	transcriber := r.Header.Get("Transcriber") // "IBM", "CMUSphinx4", or "null"
 
 	meetingUuid := h.Uuid.GetUuid()
 	soundDir := filepath.Join(h.SoundRootDir, meetingUuid)
