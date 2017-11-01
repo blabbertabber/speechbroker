@@ -6,6 +6,8 @@
   "transcriber": {
     "IBM": 2.4,
     "CMUSphinx4": 1.15,
+    "CMU Sphinx4": 1.15,
+    "CMU Sphinx 4": 1.15,
     "null": 0.0
   }
 }

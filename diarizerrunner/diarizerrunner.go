@@ -37,7 +37,7 @@ func (r Runner) Run(flavor, meetingUuid string, creds ibmservicecreds.IBMService
 			}
 			r.CmdRunner.Run(AaltoCmd...)
 		}
-	case "CMUSphinx4":
+	case "CMUSphinx4", "CMU Sphinx4", "CMU Sphinx 4":
 		{
 			CMUSphinx4Cmd := []string{
 				"docker",

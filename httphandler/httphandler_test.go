@@ -97,8 +97,11 @@ var _ = Describe("Httphandler", func() {
 					"IBM":   2.4,
 				},
 				Transcriber: map[string]float64{
-					"CMUSphinx4": 8.0,
-					"IBM":        2.4,
+					"CMUSphinx4":   8.0,
+					"CMU Sphinx4":  8.0,
+					"CMU Sphinx 4": 8.0,
+					"IBM":          2.4,
+					"null":         0.0,
 				},
 			},
 			Uuid:            fakeUuid,
@@ -121,7 +124,7 @@ var _ = Describe("Httphandler", func() {
 			URL:    &url.URL{Path: "/api/v1/upload"},
 			Header: http.Header{
 				"Diarizer":          {"Aalto"},
-				"Transcriber":       {"CMUSphinx4"},
+				"Transcriber":       {"CMU Sphinx 4"},
 				"User-Agent":        {"Mozilla/5.0 ( compatible )"},
 				"Accept":            {"*/*"},
 				"Connection":        {"Keep-Alive"},
@@ -186,7 +189,7 @@ var _ = Describe("Httphandler", func() {
 				Expect(ffs.CreateWriterCallCount()).To(Equal(2))
 				Expect(ffs.CreateWriterArgsForCall(0)).To(Equal(filepath.FromSlash("/c/d/fake-uuid/times_and_size.json")))
 				regex := `{` +
-					`"wav_file_size_in_bytes":38400000,"diarizer":"Aalto","transcriber":"CMUSphinx4",` +
+					`"wav_file_size_in_bytes":38400000,"diarizer":"Aalto","transcriber":"CMU Sphinx 4",` +
 					`"diarization_processing_ratio":0,` +
 					`"transcription_processing_ratio":0,` +
 					`"estimated_diarization_finish_time":".*",` +
@@ -212,7 +215,7 @@ var _ = Describe("Httphandler", func() {
 					Expect(uuid).To(Equal("fake-uuid"))
 					switch action {
 					case "Aalto":
-					case "CMUSphinx4":
+					case "CMUSphinx4", "CMU Sphinx4", "CMU Sphinx 4":
 					default:
 						panic("I have no idea what action this should be: " + action)
 					}
@@ -230,7 +233,7 @@ var _ = Describe("Httphandler", func() {
 				// Same expectation, but instead of calculating by hand we run
 				// the calculations through the functions (maybe this is overkill).
 				estElapDiarTime, _ := handler.Speedfactors.EstimatedDiarizationTime("Aalto", tas.WaveFileSizeInBytes)
-				estElapTransTime, _ := handler.Speedfactors.EstimatedTranscriptionTime("CMUSphinx4", tas.WaveFileSizeInBytes)
+				estElapTransTime, _ := handler.Speedfactors.EstimatedTranscriptionTime("CMU Sphinx 4", tas.WaveFileSizeInBytes)
 
 				Expect(time.Time(tas.EstimatedDiarizationFinishTime)).
 					To(Equal(time.Now().

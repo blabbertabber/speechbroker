@@ -58,6 +58,42 @@ var _ = Describe("diarizerrunner", func() {
 			}))
 		})
 	})
+	Context("When the runner is \"CMU Sphinx4\"", func() {
+		It("runs Docker with the correct arguments", func() {
+			Expect(r.Run("CMU Sphinx4", "fake-uuid", creds)).To(BeNil())
+			Expect(fdr.RunArgsForCall(0)).To(Equal([]string{
+				"docker",
+				"run",
+				"--volume=/var/blabbertabber:/blabbertabber",
+				"blabbertabber/cmu-sphinx4-transcriber",
+				"java",
+				"-Xmx2g",
+				"-cp",
+				"/sphinx4-5prealpha-src/sphinx4-core/build/libs/sphinx4-core-5prealpha-SNAPSHOT.jar:/sphinx4-5prealpha-src/sphinx4-data/build/libs/sphinx4-data-5prealpha-SNAPSHOT.jar:.",
+				"Transcriber",
+				"/blabbertabber/soundFiles/fake-uuid/meeting.wav",
+				"/blabbertabber/diarizationResults/fake-uuid/transcription.txt",
+			}))
+		})
+	})
+	Context("When the runner is \"CMU Sphinx 4\"", func() {
+		It("runs Docker with the correct arguments", func() {
+			Expect(r.Run("CMU Sphinx 4", "fake-uuid", creds)).To(BeNil())
+			Expect(fdr.RunArgsForCall(0)).To(Equal([]string{
+				"docker",
+				"run",
+				"--volume=/var/blabbertabber:/blabbertabber",
+				"blabbertabber/cmu-sphinx4-transcriber",
+				"java",
+				"-Xmx2g",
+				"-cp",
+				"/sphinx4-5prealpha-src/sphinx4-core/build/libs/sphinx4-core-5prealpha-SNAPSHOT.jar:/sphinx4-5prealpha-src/sphinx4-data/build/libs/sphinx4-data-5prealpha-SNAPSHOT.jar:.",
+				"Transcriber",
+				"/blabbertabber/soundFiles/fake-uuid/meeting.wav",
+				"/blabbertabber/diarizationResults/fake-uuid/transcription.txt",
+			}))
+		})
+	})
 	Context("When the runner is \"IBM\"", func() {
 		It("runs several commands with the correct arguments", func() {
 			Expect(r.Run("IBM", "fake-uuid", creds)).To(BeNil())

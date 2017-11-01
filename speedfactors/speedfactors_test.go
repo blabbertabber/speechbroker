@@ -32,9 +32,11 @@ var _ = Describe("Speedfactors", func() {
 						"Aalto": 0.5,
 					},
 					Transcriber: map[string]float64{
-						"IBM":        2.4,
-						"CMUSphinx4": 8.0,
-						"null":       0.0,
+						"IBM":          2.4,
+						"CMUSphinx4":   8.0,
+						"CMU Sphinx4":  8.0,
+						"CMU Sphinx 4": 8.0,
+						"null":         0.0,
 					},
 				}
 				readCreds, err := ReadCredsFromReader(sourceReader)
@@ -54,9 +56,11 @@ var _ = Describe("Speedfactors", func() {
 						"Aalto": 0.5,
 					},
 					Transcriber: map[string]float64{
-						"IBM":        2.4,
-						"CMUSphinx4": 8.0,
-						"null":       0.0,
+						"IBM":          2.4,
+						"CMUSphinx4":   8.0,
+						"CMU Sphinx4":  8.0,
+						"CMU Sphinx 4": 8.0,
+						"null":         0.0,
 					},
 				}
 				Expect(readCreds).To(Equal(expectation))
@@ -84,11 +88,11 @@ var _ = Describe("Speedfactors", func() {
 		It("calculates the expected transcription time based on file size", func() {
 			sf := Speedfactors{
 				Transcriber: map[string]float64{
-					"CMUSphinx4": 8.0,
+					"CMU Sphinx 4": 8.0,
 				},
 			}
 			// 32,000 bytes/second, 10-minute file is 19,200,000
-			Expect(sf.EstimatedTranscriptionTime("CMUSphinx4", 19200000)).To(Equal(time.Minute * 80))
+			Expect(sf.EstimatedTranscriptionTime("CMU Sphinx 4", 19200000)).To(Equal(time.Minute * 80))
 		})
 	})
 	Context("ProcessingRatio", func() {
