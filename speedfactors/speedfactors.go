@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"os"
 	"time"
 )
@@ -54,7 +55,13 @@ func (sf Speedfactors) EstimatedTranscriptionTime(transcriber string, soundFileS
 }
 
 func ProcessingRatio(start time.Time, finish time.Time, meetingWaveFileSize int64) float64 {
-	return float64(finish.Sub(start)) / float64((meetingLength(meetingWaveFileSize)))
+	if finish == start {
+		return 0.0
+	} else if meetingWaveFileSize == 0 {
+		return math.MaxFloat64
+	} else {
+		return float64(finish.Sub(start)) / float64((meetingLength(meetingWaveFileSize)))
+	}
 }
 
 func meetingLength(soundFileSizeinBytes int64) time.Duration {

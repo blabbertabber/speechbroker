@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"io/ioutil"
+	"math"
 	"strings"
 	"time"
 )
@@ -101,6 +102,19 @@ var _ = Describe("Speedfactors", func() {
 			// Oh yeah baby, accurate to within 0.00000001%!
 			Expect(ProcessingRatio(time.Now(), time.Now().Add(time.Minute*20), 32000*60*60)).
 				Should(BeNumerically("~", 0.33333333333, 0.0000000001))
+		})
+		Context("When the meeting file is 0 bytes", func() {
+			It("Returns the biggest float it can", func() {
+				Expect(ProcessingRatio(time.Now(), time.Now().Add(time.Minute*20), 0)).
+					To(Equal(math.MaxFloat64))
+			})
+			Context("When the meeting duration is 0 seconds", func() {
+				It("Returns 0", func() {
+					thisMoment := time.Now()
+					Expect(ProcessingRatio(thisMoment, thisMoment, 0)).
+						To(Equal(0.0))
+				})
+			})
 		})
 	})
 })
