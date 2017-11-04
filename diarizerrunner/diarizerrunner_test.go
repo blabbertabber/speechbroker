@@ -112,7 +112,7 @@ var _ = Describe("diarizerrunner", func() {
 				"-credentials",
 				"fake-ibm-username:fake-ibm-password",
 				"-model",
-				"en-US_NarrowbandModel",
+				"en-US_BroadbandModel",
 				"-in",
 				"/blabbertabber/soundFiles/fake-uuid/wav_file_list.txt",
 				"-out",

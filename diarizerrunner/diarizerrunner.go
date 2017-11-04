@@ -76,7 +76,7 @@ func (r Runner) Run(flavor, meetingUuid string, creds ibmservicecreds.IBMService
 				"-credentials",
 				creds.Username + ":" + creds.Password,
 				"-model",
-				"en-US_NarrowbandModel",
+				"en-US_BroadbandModel",
 				"-in",
 				fmt.Sprintf("/blabbertabber/soundFiles/%s/wav_file_list.txt", meetingUuid),
 				"-out",
