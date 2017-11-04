@@ -21,7 +21,7 @@ import (
 	"path/filepath"
 )
 
-const VERSION = "1.0.4"
+const VERSION = "1.0.5"
 const CLEAR_PORT = ":8080" // for troubleshooting in cleartext
 const SSL_PORT = ":9443"
 
