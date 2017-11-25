@@ -25,6 +25,23 @@ jobs:
       - name: src
       run:
         path: src/ci/tasks/test-unit.sh
+- name: test-parse-js
+  plan:
+  - {get: src, trigger: true}
+  - {get: 6h,  trigger: true}
+  - task: jest
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: blabbertabber/golang-ginko
+      inputs:
+      - name: src
+      run:
+        path: true
+        args:
+        - "blue"
 - name: production-server
   plan:
   - {get: src, trigger: true}
