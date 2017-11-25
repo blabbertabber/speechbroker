@@ -8,6 +8,7 @@ groups:
   - unit
   - production-server
   - test-server
+  - test-parse-js
 
 jobs:
 - name: unit
@@ -27,7 +28,7 @@ jobs:
         path: src/ci/tasks/test-unit.sh
 - name: test-parse-js
   plan:
-  - {get: src, trigger: true}
+  - {get: parse-js, trigger: true}
   - {get: 6h,  trigger: true}
   - task: jest
     config:
@@ -37,11 +38,11 @@ jobs:
         source:
           repository: blabbertabber/golang-ginko
       inputs:
-      - name: src
+      - name: parse-js
       run:
-        path: true
+        path: npm
         args:
-        - "blue"
+        - "jest"
 - name: production-server
   plan:
   - {get: src, trigger: true}
@@ -93,6 +94,11 @@ resources:
   type: git
   source:
     uri: https://github.com/blabbertabber/speechbroker
+- name: parse-js
+  type: git
+  source:
+    uri: https://github.com/blabbertabber/DiarizerResults
+    branch: jest
 - name: 6h
   type: time
   source: {interval: 6h}
