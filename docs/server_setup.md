@@ -354,11 +354,11 @@ sudo cp assets/speedfactors.json /etc/speechbroker/speedfactors.json
 Privacy Policy (7 days, prune anything older than 6 days = 24 * 60 * 6 = 8640 minutes). Append the following
 line to `/etc/crontab`
 ```bash
-23   0  *  *  * diarizer   find /var/blabbertabber/soundFiles/ -name '*-*-*-*' -type d -mmin +8640 -exec rm -rf {} \;
+23   0  *  *  * diarizer   find /var/blabbertabber/ -name '*-*-*-*' -type d -mmin +8640 -exec rm -rf {} \;
 23   0  *  *  * diarizer   docker system prune --all --force
 ```
 
-Fix ``
+Fix `nf_conntrack: table full, dropping packet`
 ```bash
 export SYS=/etc/sysctl.d/99-sysctl.conf; grep -q conntrack $SYS ||
   ( echo 'net.netfilter.nf_conntrack_max = 524288' | sudo tee -a $SYS )
