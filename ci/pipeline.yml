@@ -8,11 +8,12 @@ groups:
   - unit
   - production-server
   - test-server
+  - test-front-end
 
 jobs:
 - name: unit
   plan:
-  - get: src
+  - get: speech_broker
     trigger: true
   - task: unit-tests
     config:
@@ -22,12 +23,12 @@ jobs:
         source:
           repository: blabbertabber/golang-ginko
       inputs:
-      - name: src
+      - name: speech_broker
       run:
-        path: src/ci/tasks/test-unit.sh
-- name: test-parse-js
+        path: speech_broker/ci/tasks/test-unit.sh
+- name: test-front-end
   plan:
-  - {get: src, trigger: true}
+  - {get: diarizer_results, trigger: true}
   - {get: 6h,  trigger: true}
   - task: jest
     config:
@@ -37,14 +38,14 @@ jobs:
         source:
           repository: blabbertabber/golang-ginko
       inputs:
-      - name: src
+      - name: diarizer_results
       run:
-        path: true
+        path: npm
         args:
-        - "blue"
+        - "jest"
 - name: production-server
   plan:
-  - {get: src, trigger: true}
+  - {get: speech_broker, trigger: true}
   - {get: 6h,  trigger: true}
   - task: upload-file
     config:
@@ -54,7 +55,7 @@ jobs:
         source:
           repository: blabbertabber/golang-ginko
       inputs:
-      - name: src
+      - name: speech_broker
       run:
         path: curl
         args:
@@ -67,7 +68,7 @@ jobs:
         - "https://diarizer.com:9443/api/v1/upload"
 - name: test-server
   plan:
-  - {get: src, trigger: true}
+  - {get: speech_broker, trigger: true}
   - {get: 6h,  trigger: true}
   - task: upload-file
     config:
@@ -77,7 +78,7 @@ jobs:
         source:
           repository: blabbertabber/golang-ginko
       inputs:
-      - name: src
+      - name: speech_broker
       run:
         path: curl
         args:
@@ -89,10 +90,15 @@ jobs:
         - "transcriber:CMU Sphinx 4"
         - "http://test.diarizer.com:8080/api/v1/upload"
 resources:
-- name: src
+- name: speech_broker
   type: git
   source:
     uri: https://github.com/blabbertabber/speechbroker
+- name: diarizer_results
+  type: git
+  source:
+    uri: https://github.com/blabbertabber/DiarizerResults
+    branch: jest
 - name: 6h
   type: time
   source: {interval: 6h}
