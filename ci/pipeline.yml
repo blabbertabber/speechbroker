@@ -42,7 +42,8 @@ jobs:
       run:
         path: npm
         args:
-        - "jest"
+        - "test"
+        dir: diarizer_results/js
 - name: production-server
   plan:
   - {get: speech_broker, trigger: true}
@@ -98,7 +99,6 @@ resources:
   type: git
   source:
     uri: https://github.com/blabbertabber/DiarizerResults
-    branch: jest
 - name: 6h
   type: time
   source: {interval: 6h}
