@@ -1,8 +1,8 @@
 | Status  | Build  |
 |:---|:---|
-| [![speechbroker](https://ci.nono.io/api/v1/pipelines/BlabberTabber/jobs/unit/badge)](https://ci.nono.io/?groups=BlabberTabber) | Unit Tests
-| [![speechbroker](https://ci.nono.io/api/v1/pipelines/BlabberTabber/jobs/production-server/badge)](https://ci.nono.io/?groups=BlabberTabber) | Production Server |
-| [![speechbroker](https://ci.nono.io/api/v1/pipelines/BlabberTabber/jobs/test-server/badge)](https://ci.nono.io/?groups=BlabberTabber) | Test Server |
+| [![speechbroker](https://ci.nono.io/api/v1/pipelines/BlabberTabber/jobs/unit/badge)](https://ci.nono.io/teams/main/pipelines/BlabberTabber) | Unit Tests
+| [![speechbroker](https://ci.nono.io/api/v1/pipelines/BlabberTabber/jobs/production-server/badge)](https://ci.nono.io/teams/main/pipelines/BlabberTabber) | Production Server |
+| [![speechbroker](https://ci.nono.io/api/v1/pipelines/BlabberTabber/jobs/test-server/badge)](https://ci.nono.io/teams/main/pipelines/BlabberTabber) | Test Server |
 
 # speechbroker
 
