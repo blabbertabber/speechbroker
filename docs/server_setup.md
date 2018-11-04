@@ -354,7 +354,7 @@ sudo cp assets/speedfactors.json /etc/speechbroker/speedfactors.json
 Privacy Policy (7 days, prune anything older than 6 days = 24 * 60 * 6 = 8640 minutes). Append the following
 line to `/etc/crontab`
 ```bash
-23   0  *  *  * diarizer   find /var/blabbertabber/ -name '*-*-*-*' -type d -mmin +8640 -exec rm -rf {} \;
+23   0  *  *  * root       find /var/blabbertabber/ -name '*-*-*-*' -type d -mmin +8640 -exec rm -rf {} \;
 23   0  *  *  * diarizer   docker system prune --all --force
 ```
 
