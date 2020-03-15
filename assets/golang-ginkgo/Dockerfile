@@ -8,7 +8,12 @@ CMD ["/bin/bash"]
 
 RUN go get github.com/onsi/ginkgo/ginkgo; \
     go get github.com/onsi/gomega; \
-    apt update; \
-    curl -sL https://deb.nodesource.com/setup_8.x | bash -; \
-    apt install -y nodejs; \
-    npm install --save-dev --global jest
+    apt-get update; \
+    curl -sL https://deb.nodesource.com/setup_12.x | bash -; \
+    apt-get install -y nodejs; \
+    apt-get install -y gcc g++ make; \
+    curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -; \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list; \
+    apt-get update; \
+    apt-get install -y yarn; \
+    yarn global add jest --dev

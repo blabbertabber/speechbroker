@@ -40,7 +40,7 @@ jobs:
       inputs:
       - name: diarizer_results
       run:
-        path: npm
+        path: yarn
         args:
         - "test"
         dir: diarizer_results/js
