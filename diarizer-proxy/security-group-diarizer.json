@@ -1,0 +1,8 @@
+[
+  {
+    "protocol": "tcp",
+    "destination": "10.2.0.99/32",
+    "ports": "80,443",
+    "description": "Allow http and https traffic to diarizer.nono.io"
+  }
+]

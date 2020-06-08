@@ -1,0 +1,10 @@
+# cf push
+applications:
+- name: diarizer-proxy
+  memory: 64M
+  disk_quota: 16M
+  stack: cflinuxfs3
+  env:
+    GOPACKAGENAME: github.com/blabbertabber/speechbroker/diarizer-proxy
+  routes:
+  - route: diarizer.com
