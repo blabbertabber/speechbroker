@@ -27,6 +27,7 @@ RUN sh -c "curl vimfiles.luan.sh/install | bash"
 
 RUN sed -i 's/robbyrussell/agnoster/' /root/.zshrc
 
-RUN dnf install -y hostname
+RUN dnf install -y hostname; \
+  dnf install -y cmake
 
 CMD [ "/usr/bin/zsh" ]
