@@ -13,7 +13,8 @@ RUN dnf update -y; \
   dnf install -y ruby rubygems ruby-devel redhat-rpm-config; \
   dnf install -y mysql-devel openssl-devel zlib-devel; \
   dnf install -y which zsh; \
-  dnf install -y npm neovim python3-neovim; \
+  dnf install -y curl npm ripgrep fd-find neovim python3-neovim; \
+  dnf install -y cmake hostname; \
   gem install yajl-ruby
 
 RUN curl -L https://github.com/cloudfoundry/bosh-cli/releases/download/v6.3.1/bosh-cli-6.3.1-linux-amd64 -o /usr/local/bin/bosh; \
@@ -21,7 +22,7 @@ RUN curl -L https://github.com/cloudfoundry/bosh-cli/releases/download/v6.3.1/bo
 
 RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
-RUN sh -c "curl vimfiles.luan.sh/install | bash"
+RUN git clone https://github.com/luan/nvim /root/.config/nvim
 
 # remember to set up MySQL auto/auto_secret and scheduler/password
 
