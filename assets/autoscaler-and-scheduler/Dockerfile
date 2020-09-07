@@ -28,7 +28,4 @@ RUN git clone https://github.com/luan/nvim /root/.config/nvim
 
 RUN sed -i 's/robbyrussell/agnoster/' /root/.zshrc
 
-RUN dnf install -y hostname; \
-  dnf install -y cmake
-
 CMD [ "/usr/bin/zsh" ]
